@@ -1,0 +1,24 @@
+schema_version: 1.0.0
+registry_id: public-sample-source-acl-v1
+default_behavior: deny
+sources:
+  public_rag.md:
+    visibility: public
+    allowed_roles: []
+    allowed_groups: []
+    tenant_id: null
+  public_rag_workflow.md:
+    visibility: public
+    allowed_roles: []
+    allowed_groups: []
+    tenant_id: null
+  internal_platform.md:
+    visibility: internal_demo
+    allowed_roles: [engineer, admin]
+    allowed_groups: [platform, admin]
+    tenant_id: null
+  analyst_note.md:
+    visibility: internal_demo
+    allowed_roles: [analyst, admin]
+    allowed_groups: [product, admin]
+    tenant_id: null

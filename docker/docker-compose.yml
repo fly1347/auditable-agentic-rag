@@ -1,0 +1,40 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    env_file:
+      - .env
+    environment:
+      AGENTIC_RAG_CONFIG: /app/config.docker.yaml
+    volumes:
+      - ../artifacts/index:/app/artifacts/index
+      - ../artifacts/executions:/app/artifacts/executions
+      - ../logs:/app/logs
+      - ${HF_CACHE_DIR:-../.cache/huggingface}:/root/.cache/huggingface:ro
+      - ${TORCH_CACHE_DIR:-../.cache/torch}:/root/.cache/torch:ro
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ui
+    environment:
+      AGENTIC_RAG_API_BASE_URL: ${AGENTIC_RAG_API_BASE_URL:-http://api:8000}
+      AGENTIC_RAG_UI_TIMEOUT_SECONDS: ${AGENTIC_RAG_UI_TIMEOUT_SECONDS:-300}
+      STREAMLIT_SERVER_HEADLESS: "true"
+      STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    restart: unless-stopped

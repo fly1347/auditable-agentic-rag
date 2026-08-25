@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "public-sample-regression-v1",
+  "dataset_class": "derived_in_domain_regression",
+  "created_at": "2026-08-24",
+  "author": "agentic-rag-system",
+  "source_boundary": "public sample corpus only",
+  "contamination_check": {
+    "method": "same-corpus demonstration set",
+    "result": "not_run",
+    "notes": "用于公开最小回归，不用于 held-out 泛化结论。"
+  },
+  "dataset_sha256": "a26494920162003d38b95dd5d4ca48b4324c68e5008164751b3d988a354a7688"
+}

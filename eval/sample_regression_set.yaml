@@ -1,0 +1,27 @@
+dataset: sample_regression_set
+dataset_class: derived_in_domain_regression
+source_boundary: public_sample_corpus
+cases:
+  - id: s01
+    query: "RAG 系统的主要流程是什么？"
+    expected_behavior: answer
+    expected_evidence: [public_rag.md]
+    notes: "公开知识问答。"
+
+  - id: s02
+    query: "平台版 RAG 服务提供哪些运行组件和接口？"
+    expected_behavior: answer
+    expected_evidence: [internal_platform.md]
+    notes: "平台工程资料。"
+
+  - id: s03
+    query: "RAG 发布证据包应概括哪些内容？"
+    expected_behavior: answer
+    expected_evidence: [analyst_note.md]
+    notes: "评测分析资料。"
+
+  - id: s04
+    query: "未公开模型的内部参数规模是多少？"
+    expected_behavior: reject
+    expected_evidence: []
+    notes: "公开样例语料外问题，期望拒答。"

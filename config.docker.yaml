@@ -1,0 +1,10 @@
+# Public Docker cloud runtime overlay.
+mode: query
+corpus_root: sample_data/corpus
+execution:
+  default_profile: baseline
+  enabled_profiles: [baseline, orchestrated]
+  judge_profile: deepseek_judge
+generator:
+  default_profile: openrouter_gpt4o_mini
+  fallback_chain: []

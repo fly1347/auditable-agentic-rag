@@ -1,0 +1,27 @@
+cases:
+  - id: s01
+    query: "RAG 系统的主要流程是什么？"
+    reference_answer: >
+      RAG 先从知识库检索与问题相关的证据，再把证据作为上下文交给生成模型组织答案。
+    enable_ragas: true
+    enable_reference_based_metrics: true
+
+  - id: s02
+    query: "平台版 RAG 服务提供哪些运行组件和接口？"
+    reference_answer: >
+      平台版包含 FastAPI 后端和 Streamlit UI，API 提供健康检查、版本、指标、问答及调试入口。
+    enable_ragas: true
+    enable_reference_based_metrics: true
+
+  - id: s03
+    query: "RAG 发布证据包应概括哪些内容？"
+    reference_answer: >
+      发布证据包应概括最终回归结果、时延、成本估算和治理检查，并保留 profile、题数、冻结标识与已知限制。
+    enable_ragas: true
+    enable_reference_based_metrics: true
+
+  - id: s04
+    query: "未公开模型的内部参数规模是多少？"
+    reference_answer: ""
+    enable_ragas: false
+    enable_reference_based_metrics: false

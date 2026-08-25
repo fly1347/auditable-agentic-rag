@@ -1,5 +1,7 @@
 # Auditable Agentic RAG
 
+[English](README.en.md)
+
 一个本地优先、可评估、可审计的企业工程型 Agentic RAG 参考实现。
 
 项目围绕知识库问答的工程闭环展开：来源级权限、结构化切分、可控检索、证据充分性、引用追踪、统一执行记录、离线评测、成本核算，以及 API、UI 与 Docker 演示入口。

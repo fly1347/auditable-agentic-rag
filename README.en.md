@@ -1,5 +1,7 @@
 # Auditable Agentic RAG
 
+[中文](README.md)
+
 An evaluation-driven and auditable Agentic RAG reference implementation for enterprise-oriented engineering scenarios.
 
 The project is organized around the full engineering lifecycle of knowledge-base question answering: source-level authorization, structure-aware chunking, controlled retrieval, evidence sufficiency, citation tracing, canonical execution records, offline evaluation, cost accounting, and runnable API, UI, and Docker entry points.

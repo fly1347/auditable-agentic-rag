@@ -168,11 +168,12 @@ See [Security Baseline](docs/en/security-baseline.md).
 ```text
 src/agentic_rag/       Online implementation and canonical execution structures
 eval/                  Core evaluation entry points and sample regression data
+tests/                 Four core governance and audit contract test files
 sample_data/           Public original demo corpus
 policy/                Sample source ACL registry
 docker/                Containerized API/UI entry points
 docs/                  System design, architecture, evaluation, security, deployment, and limits
-artifacts/evaluation/  Public evaluation reports and model-selection evidence
+artifacts/evaluation/  Public frozen evaluation reports
 scripts/               Release scan, packaging, and helper validation scripts
 ```
 

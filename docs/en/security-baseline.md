@@ -87,12 +87,14 @@ PYTHONPATH=src:. python eval/run_security_smoke.py \
   --output-dir artifacts/security-smoke
 ```
 
-The complete release gate also includes:
+The public repository also retains four core governance and audit contract test files (currently 11 tests) covering source-registry, provider-egress, audit-projection, and CER invariants. The complete release gate includes:
 
 ```bash
 PYTHONPATH=src:. python -m unittest discover -s tests -q
 python scripts/release_scan.py .
 ```
+
+The current offline security smoke contains 16 assertions covering identity, authentication, admin defaults, query safety, prompt injection, tenant ACL, egress, redaction, and public CER sanitization directly.
 
 These commands do not automatically authorize provider calls. Online evaluation must explicitly permit model calls and the corresponding data-egress policy.
 

@@ -88,7 +88,7 @@ Phase F 的关键结论是：baseline 提供更高覆盖率和较低成本；orc
 
 Phase G 从空 staging 按白名单组装公开仓库：
 
-- 只保留运行主线、核心评测入口、tests 和发布脚本；
+- 只保留运行主线、核心评测入口、4 个核心治理与审计 contract tests 和发布脚本；
 - 用原创 `sample_data` 替代完整私有语料；
 - 为 sample sources 重建 ACL；
 - 公开 baseline / orchestrated / comparison 人读报告；

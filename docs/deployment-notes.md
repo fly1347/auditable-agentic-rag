@@ -146,6 +146,8 @@ docker compose -f docker/docker-compose.yml down
 
 ## 8. 离线门禁
 
+公开版只保留 4 个核心治理与审计 contract test 文件（11 条测试），而不是 Phase F 的完整开发测试集。
+
 ```bash
 python -m compileall -q src tests eval scripts
 PYTHONPATH=src:. python -m unittest discover -s tests -q

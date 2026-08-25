@@ -87,12 +87,14 @@ PYTHONPATH=src:. python eval/run_security_smoke.py \
   --output-dir artifacts/security-smoke
 ```
 
-完整发布门禁还包括：
+公开仓库另外保留 4 个核心治理与审计 contract test 文件（当前 11 条测试），验证 source registry、provider egress、audit projection 与 CER 不变量。完整发布门禁包括：
 
 ```bash
 PYTHONPATH=src:. python -m unittest discover -s tests -q
 python scripts/release_scan.py .
 ```
+
+当前 offline security smoke 为 16 条断言，直接覆盖 identity、authentication、admin、query safety、prompt injection、tenant ACL、egress、redaction 与公开 CER sanitization。
 
 这些命令不会自动授权 provider 调用。在线评测必须同时显式允许模型调用和相应数据出境确认。
 

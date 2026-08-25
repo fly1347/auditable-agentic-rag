@@ -88,7 +88,7 @@ The key Phase F conclusion is that `baseline` provides higher coverage and lower
 
 Phase G assembled the public repository from an empty staging area using a whitelist:
 
-- retained only the runtime mainline, core evaluation entry points, tests, and release scripts;
+- retained only the runtime mainline, core evaluation entry points, four core governance/audit contract test files, and release scripts;
 - replaced the complete private corpus with original `sample_data`;
 - rebuilt ACLs for sample sources;
 - published human-readable `baseline`, `orchestrated`, and comparison reports;

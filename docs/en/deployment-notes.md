@@ -146,6 +146,8 @@ The public release does not provide an Ollama-specific Compose setup or local fa
 
 ## 8. Offline Gates
 
+The public release retains only four core governance and audit contract test files (11 tests), not the full Phase F development test suite.
+
 ```bash
 python -m compileall -q src tests eval scripts
 PYTHONPATH=src:. python -m unittest discover -s tests -q

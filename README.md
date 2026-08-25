@@ -168,11 +168,12 @@ B2 属于 `derived_in_domain_regression`，用于同域回归、证据链验证�
 ```text
 src/agentic_rag/       在线实现与统一事实结构
 eval/                  核心评测入口与 sample regression
+tests/                 4 个核心治理与审计 contract tests
 sample_data/           公开原创演示语料
 policy/                sample source ACL registry
 docker/                API/UI 容器化入口
 docs/                  系统设计、架构、评测、安全、部署与限制
-artifacts/evaluation/      公开评测报告与模型选型证据
+artifacts/evaluation/      公开冻结评测报告
 scripts/               发布扫描、打包与辅助验证
 ```
 

@@ -49,7 +49,7 @@ CLI、FastAPI、Streamlit UI 和评测入口最终进入 `RagApplicationService`
 | baseline | binary | 默认交互、演示、批量回归、成本敏感场景 |
 | orchestrated | structured | 严格证据、高风险问答、审计和故障归因 |
 
-两个 profile 共用 route、retrieval、ACL、RRF、evidence、prompt、generation 和 citation 实现。orchestrated 的增量集中在结构化证据判断、rewrite、第二轮检索和再次判断。
+两个 profile 共用 route、retrieval、ACL、RRF、evidence、prompt、generation、citation，以及证据不足后的 rewrite、一次二轮检索和再次判断。差异集中在 sufficiency 合同：baseline 使用 binary 判断，orchestrated 基于 EvidencePacket 生成结构化 SufficiencyResult。
 
 ### 横切轴
 

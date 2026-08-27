@@ -15,7 +15,7 @@
 - 语料：`sample_data/corpus/`
 - fallback：关闭
 
-`orchestrated` 作为可选严格证据 profile 保留。它会在证据不足时执行 query rewrite、第二轮检索和再次判断。
+`orchestrated` 作为可选严格证据 profile 保留。两个 profile 共用证据不足后的 query rewrite 与一次二轮检索；区别主要在 sufficiency 合同：`baseline` 使用二分类判断，`orchestrated` 基于 EvidencePacket 生成结构化 SufficiencyResult，以增强证据解释、审计和拒答控制。
 
 ## 项目价值
 
@@ -48,7 +48,7 @@
 基础设施：[Corpus / Index]  [Embedding]  [LLM / Judge]
 ```
 
-所有在线入口共用 `RagApplicationService`。两个 profile 共用检索、ACL、证据、Prompt、生成与引用实现；差异集中在 sufficiency 合同和证据不足后的控制动作。
+所有在线入口共用 `RagApplicationService`。两个 profile 共用检索、ACL、证据、Prompt、生成、引用及证据不足后的有界恢复流程；差异集中在 sufficiency 合同及其判断粒度。
 
 D-full classifier、Citation Support、Conflict 和 Uncertainty 位于后置评测层，不改变在线答案。
 
@@ -68,6 +68,18 @@ D-full classifier、Citation Support、Conflict 和 Uncertainty 位于后置评�
 | 评测 | 在线断言、D-full 后置诊断、CER-native RAGAS、成本总账与配对对比 |
 | 服务入口 | CLI、FastAPI、Streamlit、Docker Compose |
 | 安全基线 | 可信身份适配、query safety、egress gate、redaction、release scan |
+
+## 系统设计
+
+项目的重点不只是组合 RAG 组件，而是把关键选择放进可验证的工程约束中：语料与索引本地优先；ACL 在 TopK 前生效；Agentic 行为限制为 DIRECT / DECOMPOSE 与最多一次二轮检索；EvidenceSnapshot、PromptSnapshot 与 CER 分别记录“检索到了什么、模型真正看到了什么、一次执行实际发生了什么”。评测、审计和成本报告均从冻结执行事实派生，避免重新拼装上下文造成口径漂移。
+
+完整设计逻辑、替代方案与重新评估条件见 [系统设计与技术选型](docs/system-design.md)。
+
+## 模型选型与部署
+
+模型按角色而不是按单一榜单选择。项目从本地 Qwen / Ollama 起步，经过本地推理、固定题集、Judge 替换、RAGAS 兼容性、延迟与成本对比后，最终将角色拆分为：本地 BGE 负责 Embedding，GPT-4o-mini 负责默认答案生成，DeepSeek Flash 负责在线 sufficiency judgment；公开默认关闭 fallback，以保持模型身份、失败原因和成本可解释。
+
+完整实验过程、模型横评、API / 本地部署权衡及重新选型条件见 [模型选型与推理部署演进](docs/model-selection.md)。
 
 ## Quickstart
 

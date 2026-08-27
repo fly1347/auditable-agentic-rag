@@ -49,7 +49,7 @@ There are only two online execution profiles:
 | baseline | binary | Default interaction, demos, batch regression, cost-sensitive scenarios |
 | orchestrated | structured | Strict evidence control, high-risk QA, audit, and failure diagnosis |
 
-The two profiles share route, retrieval, ACL, RRF, evidence, prompt, generation, and citation implementation. The incremental logic in `orchestrated` is concentrated in structured evidence judgment, rewrite, second-round retrieval, and a second judgment.
+The two profiles share route, retrieval, ACL, RRF, evidence, prompt, generation, citation, and the bounded recovery path of rewrite, one second retrieval round, and a second judgment after insufficient evidence. Their difference is concentrated in the sufficiency contract: `baseline` uses a binary judgment, while `orchestrated` produces a structured SufficiencyResult over an EvidencePacket.
 
 ### Cross-Cutting Axis
 

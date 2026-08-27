@@ -27,7 +27,7 @@ Evaluation signals remain layered rather than being collapsed into one aggregate
 | orchestrated run | `eval_1ffb699473ab` |
 | RAGAS | 0.4.3 |
 
-For all 30 questions, both profiles have identical first-round original-query Top5 chunks and scores. The primary variables are the binary versus structured sufficiency contracts and the second-round actions taken after insufficient evidence.
+For all 30 questions, both profiles have identical first-round original-query Top5 chunks and scores. The primary variable is the binary versus structured sufficiency contract; rewrite and second-round retrieval are shared mechanisms, while different sufficiency judgments cause them to be triggered for different numbers of questions.
 
 ## 3. Evaluation Structure
 

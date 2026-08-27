@@ -27,7 +27,7 @@
 | orchestrated run | `eval_1ffb699473ab` |
 | RAGAS | 0.4.3 |
 
-两套 profile 的 30/30 第一轮 original-query Top5 chunk 与 score 一致。主要变量是 binary 与 structured sufficiency 合同，以及证据不足后的二轮动作。
+两套 profile 的 30/30 第一轮 original-query Top5 chunk 与 score 一致。主要变量是 binary 与 structured sufficiency 合同；rewrite 与二轮检索机制本身共享，但不同 sufficiency 判断会触发不同数量的二轮执行。
 
 ## 3. 评测结构
 

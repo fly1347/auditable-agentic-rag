@@ -1,4 +1,12 @@
-"""Loss-aware projection from the historical Answer contract into CER."""
+"""
+程序作用：
+把历史 Answer 结构中的答案、检索、引用、步骤和模型用量投影到 CER，同时保留缺失字段的真实状态。
+
+整体结构：
+1）辅助函数把 dataclass、chunk 和模型调用转换成普通字典；
+2）aggregate_model_call_usage 按“未知不等于 0”的原则汇总用量；
+3）project_answer_into_record 将历史 Answer 写入 CER，并补充对应执行事件。
+"""
 
 from __future__ import annotations
 
@@ -54,7 +62,7 @@ def _model_calls(flags: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def aggregate_model_call_usage(calls: list[dict[str, Any]]) -> dict[str, Any]:
-    """Aggregate calls without turning missing token details into zero."""
+    """汇总模型调用用量，缺失的 Token 明细保持为空，不擅自记成 0。"""
     token_fields = (
         "prompt_tokens", "completion_tokens", "reasoning_tokens",
         "cached_tokens", "cache_write_tokens", "total_tokens",

@@ -1,9 +1,11 @@
-"""严格、类型化的运行时配置。
+"""
+程序作用：
+集中定义严格、类型化的运行时配置，并按“默认值 < YAML < 调用方显式覆盖”的优先级完成合并与校验。模块自动读取项目根目录 `.env`，但不覆盖系统、终端或容器已有变量；密钥明文不进入 YAML。
 
-配置优先级：默认值 < YAML < 调用方显式覆盖。
-配置模块启动时自动读取项目根目录 `.env`；已经存在的系统、终端或容器环境变量优先。
-密钥值不写入 YAML；provider client 与身份适配器在实际调用时，
-按照本配置声明的环境变量名读取密钥。
+整体结构：
+1）各 dataclass 分别描述执行、认证、出站、索引、提示、引用和生成模型配置；
+2）默认值与构建辅助函数负责深度合并、字段白名单和 profile 解析；
+3）load_config 读取环境与 YAML，返回统一 AppConfig。
 """
 
 from __future__ import annotations
@@ -188,11 +190,10 @@ class AppConfig:
 
 
 def _default_generator_profiles() -> Dict[str, Dict[str, Any]]:
-    """Profiles required by the public default runtime.
+    """返回公开默认运行链路所需的生成模型 profile。
 
-    Local/Ollama-compatible clients remain supported by the implementation,
-    but local profiles must be configured explicitly instead of being silently
-    registered as runtime defaults.
+    实现仍支持本地或 Ollama-compatible 客户端，但本地 profile 必须显式配置，
+    不会静默注册为运行时默认值。
     """
     return {
         "openrouter_gpt4o_mini": {

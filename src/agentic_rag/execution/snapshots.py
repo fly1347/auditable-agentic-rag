@@ -1,4 +1,12 @@
-"""Deterministic evidence and prompt snapshots shared by runtime and eval."""
+"""
+程序作用：
+为运行时与评估侧生成确定性的证据快照和提示快照，使实际可见上下文能够被稳定哈希、回放和审计。
+
+整体结构：
+1）_snapshot_id 根据规范 JSON 生成稳定快照标识；
+2）_chunk_payload 统一 chunk、得分、偏移和 ACL 字段；
+3）build_evidence_snapshot 与 build_prompt_snapshot 分别冻结候选证据和实际提示内容。
+"""
 
 from __future__ import annotations
 
@@ -34,6 +42,7 @@ def _chunk_payload(chunk: Chunk, score: float | None, rank: int) -> dict[str, An
     }
 
 
+# 冻结一次检索中的候选与选中证据。
 def build_evidence_snapshot(result: RetrievalResult) -> dict[str, Any]:
     selected = [
         _chunk_payload(

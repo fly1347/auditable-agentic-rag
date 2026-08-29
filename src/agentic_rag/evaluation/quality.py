@@ -1,4 +1,12 @@
-"""Apply independently produced answer-quality annotations to evaluated CER."""
+"""
+程序作用：
+把独立产出的答案质量标注绑定到已评估 CER，并用答案哈希防止标注串题或套用到旧答案。
+
+整体结构：
+1）answer_sha256 计算当前答案的稳定哈希；
+2）apply_quality_annotations 按 qid 匹配标注并校验字段与哈希；
+3）将合法标注写入对应 CER 的 answer_quality 断言。
+"""
 
 from __future__ import annotations
 
@@ -14,6 +22,7 @@ def answer_sha256(record: CanonicalExecutionRecord) -> str:
     return hashlib.sha256(answer.encode("utf-8")).hexdigest()
 
 
+# 校验题号与答案哈希后，把质量标注写入对应记录。
 def apply_quality_annotations(
     records: Iterable[CanonicalExecutionRecord],
     annotations: Iterable[Mapping[str, Any]],

@@ -185,7 +185,7 @@ class IngestService:
         }
 
     def _rebuild_index_with_rollback(self):
-        """Build immutably; failure leaves the previous current.json untouched."""
+        """使用不可变构建重建索引；失败时保持原 current.json 不变。"""
         try:
             stats = index_corpus(
                 corpus_dir=self.corpus_dir.as_posix(),

@@ -1,8 +1,11 @@
-"""Loss-aware import of Phase-E debug JSONL into CER.
+"""
+程序作用：
+把 Phase E 调试 JSONL 尽可能无损地导入 CER；历史产物未记录的候选、合并贡献、答案质量或 grounding 结果一律明确标成未观测，不凭空补值。
 
-The importer never invents per-query candidates, merge contributions, answer
-quality, or grounding results.  Values absent from the historical artifact are
-labelled explicitly so downstream reports cannot mistake a guess for evidence.
+整体结构：
+1）辅助函数规范化历史字典、列表、模型调用和提示证据；
+2）import_phase_e_row 把单条历史回归结果转换成 CER；
+3）import_phase_e_rows 批量导入并保持原始记录顺序。
 """
 
 from __future__ import annotations
@@ -55,7 +58,7 @@ def _model_call(call: Mapping[str, Any], index: int) -> dict[str, Any]:
         "timeout": bool(row.get("timeout", False)),
         "error_type": _present(row.get("error_type")),
         "fallback_used": _present(row.get("fallback_used")),
-        # Retained in internal CER only; public projection removes these fields.
+        # 这些字段只保留在内部 CER 中，对外投影会将其移除。
         "endpoint": row.get("endpoint", identity.get("endpoint")),
         "api_key_hash": row.get("api_key_hash", identity.get("api_key_hash")),
     }
@@ -113,7 +116,7 @@ def _behavior_pass(expected: Any, refused: bool) -> Any:
 
 
 def import_phase_e_row(raw: Mapping[str, Any]) -> CanonicalExecutionRecord:
-    """Convert one frozen Phase-E regression row into a historical CER."""
+    """把一条冻结的 Phase E 回归结果转换成历史 CER。"""
     row = dict(raw)
     response = _dict(row.get("response"))
     flags = _dict(response.get("flags"))

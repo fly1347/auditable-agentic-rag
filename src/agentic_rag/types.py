@@ -61,8 +61,7 @@ class RetrievalResult:
     selective_rerank_gap: Optional[float] = None
     selective_rerank_before_source_ids: List[str] = field(default_factory=list)
     selective_rerank_after_source_ids: List[str] = field(default_factory=list)
-    # Canonical retrieval observations.  These fields are additive so callers
-    # using the historical contract keep working while CER can stop guessing.
+    # 规范检索观察字段只做增量扩展：既保持历史调用方兼容，也让 CER 不再依赖猜测补值。
     retrieval_events: List[Dict[str, Any]] = field(default_factory=list)
     merge_trace: Dict[str, Any] = field(default_factory=dict)
     access_policy: Dict[str, Any] = field(default_factory=dict)

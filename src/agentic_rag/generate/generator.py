@@ -323,7 +323,7 @@ class RAGGenerator:  # RAG 生成器。  # noqa: E501
         return "\n".join(blocks)  # 合并为字符串。  # noqa: E501
 
     def _parse_citation_markers(self, text: str) -> List[int]:
-        """Parse short evidence markers without accepting arbitrary source IDs."""
+        """只解析简短证据标记，不接受任意来源 ID 冒充引用。"""
         return [int(match.group("index")) for match in _CIT_RE.finditer(text)]
 
     def _build_citations(
@@ -332,7 +332,7 @@ class RAGGenerator:  # RAG 生成器。  # noqa: E501
         scores: Sequence[float],
         cited: List[int],
     ) -> Tuple[List[Citation], List[Dict[str, Any]]]:
-        """Bind citations exclusively to the evidence actually visible in prompt."""
+        """引用只能绑定到提示中实际对模型可见的证据。"""
         citations: List[Citation] = []
         failures: List[Dict[str, Any]] = []
         seen: set[int] = set()

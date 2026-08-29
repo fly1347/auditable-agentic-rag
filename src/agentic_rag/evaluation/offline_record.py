@@ -1,4 +1,12 @@
-"""Versioned records for post-run D-full and evaluator observations."""
+"""
+程序作用：
+定义带版本的离线 D-full 评估记录，并统一模型调用、成本、来源绑定和公开投影口径。
+
+整体结构：
+1）哈希、时间、来源绑定和模型调用规范化辅助函数；
+2）OfflineStageRecord 记录单个离线评估阶段；
+3）OfflineEvaluationRecord 汇总逐题离线结果并提供序列化、公开脱敏能力。
+"""
 
 from __future__ import annotations
 
@@ -66,7 +74,7 @@ def normalize_model_call(
     index: int,
     category: str = "offline_dfull",
 ) -> dict[str, Any]:
-    """Flatten historical nested identity fields into the CER model-call shape."""
+    """把历史嵌套模型身份字段整理成 CER 统一的 model_call 结构。"""
     call = dict(raw or {})
     identity = dict(call.pop("identity", {}) or {})
     for key in (

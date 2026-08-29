@@ -1,4 +1,12 @@
-"""Rank-based fusion and lossless retrieval-event projections."""
+"""
+程序作用：
+按排名融合多路检索结果，并完整保留各候选的来源、轮次、原始排名和融合贡献。
+
+整体结构：
+1）FusionInput 描述一路检索结果及其查询角色、轮次；
+2）candidate_item 与 retrieval_event 生成可审计的候选和事件投影；
+3）rrf_fuse 使用 RRF 融合排名，返回结果与逐项贡献明细。
+"""
 
 from __future__ import annotations
 
@@ -69,7 +77,7 @@ def rrf_fuse(
     elapsed_ms: float,
     rrf_k: int = 60,
 ) -> RetrievalResult:
-    """Fuse ranked lists without comparing provider-specific raw scores."""
+    """使用排名融合多路结果，不直接比较不同检索器口径不一的原始分数。"""
 
     if rrf_k < 1:
         raise ValueError("rrf_k must be positive")

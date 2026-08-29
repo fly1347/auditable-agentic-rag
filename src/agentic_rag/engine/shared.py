@@ -1,4 +1,12 @@
-"""Shared online stages used by both migration and target engines."""
+"""
+程序作用：
+承载 baseline 与 orchestrated 共用的在线执行阶段，统一处理出站权限、查询调用和 CER 投影。
+
+整体结构：
+1）接收引擎配置、可信身份、查询命令和共享依赖；
+2）建立请求级出站策略上下文并执行查询函数；
+3）把答案和策略决定写回 CER 后返回。
+"""
 
 from __future__ import annotations
 
@@ -22,12 +30,10 @@ def execute_shared_stages(
     query_func: Callable[..., Any],
     execution_profile: str,
 ) -> tuple[Any, CanonicalExecutionRecord]:
-    """Run the one corrected retrieval/generation chain and project one CER."""
+    """执行统一检索生成链路，并把结果投影到一条 CER。"""
 
     egress_decisions: list[dict[str, object]] = []
-    # Query text has no source ACL yet.  Treat it as restricted unless a
-    # trusted adapter explicitly grants the narrowly scoped public-egress role;
-    # admin status must never imply permission to export data.
+    # 查询文本尚未绑定来源 ACL，默认按受限数据处理；只有可信适配器授予专用 public-egress 能力时才可放行，admin 身份本身不能代表导出权限。
     query_visibility = "public" if "public_egress" in principal.roles else "internal"
     try:
         generator_profile = config.generator.get_profile()

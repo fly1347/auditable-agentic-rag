@@ -1,8 +1,11 @@
-"""Trusted local CLI adapter.
+"""
+程序作用：
+提供可信的本地命令行入口；完整查询统一进入 RagApplicationService，离线建索引和检索诊断则保持为明确的运维命令。
 
-Full query execution enters RagApplicationService. Offline index and retrieval
-diagnostics remain explicit operator commands and never masquerade as a full
-workflow run.
+整体结构：
+1）_parse_args 解析 index、retrieve、query 三种模式及运行参数；
+2）main 按模式装配配置和依赖并执行对应操作；
+3）_required_query 校验需要查询文本的命令参数。
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ def _parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+# 根据命令模式执行建索引、检索诊断或完整查询。
 def main(argv: Optional[list[str]] = None) -> int:
     args = _parse_args(argv)
     config = load_config(args.config)

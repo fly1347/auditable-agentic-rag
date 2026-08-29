@@ -1,4 +1,12 @@
-"""API projection over the single application service and CER."""
+"""
+程序作用：
+把统一应用服务与 CER 投影成普通或调试版聊天 API 响应，并补充审计、指标和结构化日志。
+
+整体结构：
+1）ChatService 接收请求、解析可信身份并调用 RagApplicationService；
+2）将答案、引用、步骤、策略、用量和耗时转换成 API DTO；
+3）辅助函数从模型调用底账重算规范用量，避免未知字段被静默记成 0。
+"""
 
 from __future__ import annotations
 
@@ -28,6 +36,7 @@ from agentic_rag.types import Answer
 
 
 class ChatService:
+    """执行一次聊天请求并生成对应 API 响应。"""
     def __init__(self, application_service: Optional[RagApplicationService] = None) -> None:
         if application_service is None:
             config_path = os.getenv("AGENTIC_RAG_CONFIG", "config.yaml")
@@ -234,8 +243,7 @@ class ChatService:
 
 
 def _usage_projection(record: CanonicalExecutionRecord) -> dict[str, Any]:
-    # Recompute canonical totals from the call ledger so an omitted reasoning,
-    # cache, token, or cost field never silently becomes zero in the API view.
+    # 从逐次调用底账重算规范总计，避免缺失的 reasoning、cache、Token 或成本字段在 API 视图中静默变成 0。
     totals = aggregate_model_call_usage(list(record.model_calls))
     return {**dict(record.usage or {}), **totals, "model_calls": list(record.model_calls)}
 

@@ -1,4 +1,12 @@
-"""Build a deterministic release evidence pack from CER projections."""
+"""
+程序作用：
+从 CER 及安全断言生成确定性的发布证据包，明确区分历史桥接证据与最终回归证据。
+
+整体结构：
+1）按评估维度汇总可直接观测的断言状态；
+2）生成质量表、安全表与通用评估报告；
+3）build_release_pack 复制必要产物并写出文件哈希清单。
+"""
 
 from __future__ import annotations
 
@@ -37,9 +45,7 @@ def _dimension_statuses(record: CanonicalExecutionRecord) -> dict[str, str]:
             for name in DIMENSIONS
         }
 
-    # Historical bridge records predate the unified assertion schema.  Only
-    # preserve directly observed boolean contracts; never infer grounding,
-    # citation validity, security, or answer quality from an answer string.
+    # 历史桥接记录早于统一断言结构，只保留当时直接观测到的布尔契约；绝不从答案字符串推断 grounding、引用有效性、安全或答案质量。
     behavior_raw = evaluation.get("behavior_pass")
     path_raw = evaluation.get("path_pass")
     return {
@@ -144,6 +150,7 @@ def _hash_manifest(root: Path, *, evidence_class: str) -> dict[str, Any]:
     }
 
 
+# 汇总评估与安全证据，生成可复核的发布包。
 def build_release_pack(
     records: Iterable[CanonicalExecutionRecord],
     output_dir: str | Path,

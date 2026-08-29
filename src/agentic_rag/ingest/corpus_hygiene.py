@@ -1,4 +1,12 @@
-"""Recoverable corpus transformations kept outside the online loader root."""
+"""
+程序作用：
+提供可恢复的离线语料清理操作，把可能造成评估泄漏的 FAQ 区块移出在线 loader 根目录。
+
+整体结构：
+1）FAQIsolationItem 记录原文件、清理后文件、归档文件与哈希；
+2）plan_faq_isolation 扫描并生成待处理计划；
+3）apply_faq_isolation 执行隔离，restore_faq_archive 从归档恢复原文。
+"""
 
 from __future__ import annotations
 
@@ -45,6 +53,7 @@ class FAQIsolationItem:
         }
 
 
+# 扫描语料并生成 FAQ 隔离计划，不立即改动文件。
 def plan_faq_isolation(corpus_root: str | Path) -> list[tuple[Path, str, str, FAQIsolationItem]]:
     root = Path(corpus_root).resolve()
     planned: list[tuple[Path, str, str, FAQIsolationItem]] = []

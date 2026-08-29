@@ -1,4 +1,12 @@
-"""Versioned canonical execution record and append-only JSONL sink."""
+"""
+程序作用：
+定义带版本的规范执行记录 CER、执行事件和只追加 JSONL 写入器，并提供对外脱敏投影。
+
+整体结构：
+1）ExecutionEvent 描述有序执行事件；
+2）CanonicalExecutionRecord 汇总身份、策略、检索、提示、模型调用、断言与结果；
+3）脱敏辅助函数清除私有正文和连接信息，JsonlRecordSink 负责线程安全落盘。
+"""
 
 from __future__ import annotations
 
@@ -111,9 +119,7 @@ class CanonicalExecutionRecord:
                 dropped += 1
         data["principal"] = principal
 
-        # Sensitive evidence previews can occur in retrieval, prompt, events, or
-        # legacy compatibility fields.  Apply the allowlist-style text removal
-        # to the complete projection instead of assuming one historical shape.
+        # 敏感证据预览可能出现在检索、提示、事件或历史兼容字段中，因此对完整投影统一执行白名单式正文清除，不能只假设一种旧结构。
         for container in list(data.values()):
             dropped += _drop_sensitive_text(container)
 

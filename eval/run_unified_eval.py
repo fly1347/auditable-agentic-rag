@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
-"""Run or replay the unified CER evaluation gate.
+"""
+程序作用：
+统一执行或回放 CER 评估门禁；只有同时显式启用实时运行和模型调用时，程序才允许访问外部服务。
 
-No provider call is possible unless both --run-live and
---allow-provider-calls are present.
+整体结构：
+1）读取题集、既有 CER 与可选质量标注；
+2）按 live 或 replay 模式生成、筛选并校验记录；
+3）执行预算门禁和质量断言，写出统一评估报告。
 """
 
 from __future__ import annotations
@@ -301,6 +305,7 @@ def live_records(args: argparse.Namespace, cases: list[dict]) -> list[CanonicalE
     return records
 
 
+# 将规范记录投影成统一评估产物。
 def write_outputs(
     args: argparse.Namespace,
     records: list[CanonicalExecutionRecord],

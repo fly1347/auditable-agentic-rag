@@ -1,4 +1,12 @@
-"""Trusted principal model and local authentication adapters."""
+"""
+程序作用：
+定义可信调用身份及本地认证适配器，避免请求方通过业务参数自行声明角色、用户组或租户。
+
+整体结构：
+1）Principal 保存主体身份、角色、用户组、租户和认证方式；
+2）anonymous、local_cli、eval 三类构造函数生成固定权限边界的可信身份；
+3）StaticTokenAuthAdapter 用服务端配置的 opaque token 解析 API 调用身份。
+"""
 
 from __future__ import annotations
 
@@ -50,14 +58,11 @@ def anonymous_principal() -> Principal:
 
 
 def local_cli_principal() -> Principal:
-    """Trusted local adapter principal; callers cannot supply roles or tenant."""
+    """生成可信本地 CLI 身份；调用方不能自行传入角色或租户。"""
 
     return Principal(
         principal_id="local-cli",
-        # Egress remains capability-based: admin alone never grants export.
-        # The trusted local adapter explicitly grants public-query egress so
-        # CLI parity runs can use an allowed cloud profile when their evidence
-        # is public. Restricted evidence is still denied by the evidence ACL.
+        # 出站始终按专用能力判断，admin 身份本身不授予导出权；本地可信适配器只显式允许公开查询使用云端 profile，受限证据仍由 ACL 拒绝。
         roles=frozenset({"admin", "operator", "public_egress"}),
         groups=frozenset({"local"}),
         auth_mode="local_cli",
@@ -102,7 +107,7 @@ def _principal_from_mapping(raw: Mapping[str, Any], auth_mode: str) -> Principal
 
 
 class StaticTokenAuthAdapter:
-    """Resolve opaque local API tokens without retaining their plaintext value."""
+    """使用 opaque 本地 API token 解析身份，不在主体对象中保留 token 明文。"""
 
     def __init__(self, config: AuthConfig, raw_json: Optional[str] = None) -> None:
         self.config = config

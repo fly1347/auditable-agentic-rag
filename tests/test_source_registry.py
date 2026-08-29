@@ -1,3 +1,13 @@
+"""
+程序作用：
+验证来源 ACL 注册表加载、权限传播与切分后的 lineage 保持，防止未知来源或缺失 ACL 进入索引。
+
+整体结构：
+1）字符级 tokenizer 替身让切分测试保持确定性；
+2）_registry 构造最小来源权限注册表；
+3）SourceRegistryTests 覆盖未知来源拒绝、ACL 传播、切分与加载器校验。
+"""
+
 from __future__ import annotations
 
 import tempfile
@@ -14,7 +24,7 @@ from agentic_rag.policy.source_registry import (
 
 
 class _CharacterTokenBudgetProvider:
-    """Deterministic test double; production Markdown still requires its tokenizer."""
+    """确定性的测试替身；生产 Markdown 切分仍必须使用真实 tokenizer。"""
 
     def content_token_counts(self, texts: list[str]) -> list[int]:
         return [len(text) for text in texts]
@@ -39,6 +49,7 @@ def _registry() -> SourceACLRegistry:
 
 
 class SourceRegistryTests(unittest.TestCase):
+    """覆盖来源 ACL 从注册表到文档和 chunk 的完整传播链。"""
     def test_loader_splitter_propagates_acl(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "doc.md"

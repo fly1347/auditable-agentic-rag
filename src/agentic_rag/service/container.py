@@ -1,4 +1,12 @@
-"""Process-level dependency lifecycle for model and index objects."""
+"""
+程序作用：
+管理模型、检索器、索引与两套引擎的进程级生命周期，避免每个请求重复加载重型依赖。
+
+整体结构：
+1）RuntimeContainer 保存配置、工厂函数和线程锁；
+2）按需懒加载当前索引与检索器，并在索引切换后刷新；
+3）统一构造 baseline、orchestrated 引擎及其共享依赖。
+"""
 
 from __future__ import annotations
 
@@ -15,6 +23,7 @@ from agentic_rag.policy.source_registry import SourceACLRegistry
 
 
 class RuntimeContainer:
+    """按需创建并复用进程级运行依赖。"""
     def __init__(
         self,
         config: AppConfig,

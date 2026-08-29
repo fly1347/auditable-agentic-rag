@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Validate the production structure-first Markdown splitter on the real corpus.
+"""
+程序作用：
+在真实语料上验证生产用结构优先 Markdown 切分器，只复用本地 embedding 模型的 tokenizer 与偏移映射，不执行向量化、检索、生成或网络调用。
 
-No embedding vectors, retrieval, generation, or network calls are performed.
-The locally cached production embedding model is loaded only to reuse its exact
-content tokenizer and offset mapping.
+整体结构：
+1）加载语料、ACL 和生产 tokenizer；
+2）统计切分覆盖率、Token 分布、结构保持情况与稳定签名；
+3）输出 JSON/Markdown 报告，并对硬性违规返回失败退出码。
 """
 
 from __future__ import annotations
@@ -120,6 +123,7 @@ def _markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+# 运行真实语料切分验证并写出统计报告。
 def main() -> int:
     args = _args()
     token_limit = int(args.token_limit)

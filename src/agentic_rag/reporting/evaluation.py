@@ -1,4 +1,12 @@
-"""Generic Markdown/CSV projections generated from canonical execution records."""
+"""
+程序作用：
+把规范执行记录投影成通用 Markdown 与 CSV 评估报告，所有统计尽量直接读取冻结执行事实。
+
+整体结构：
+1）基础辅助函数统一兼容当前与历史 CER、显示格式和逐题字段；
+2）分别生成总览、逐题答案、检索信号、来源分布、工作流、耗时用量成本等章节；
+3）build_evaluation_reports 一次写出完整报告集及机器表格。
+"""
 
 from __future__ import annotations
 
@@ -17,13 +25,13 @@ from agentic_rag.execution.record import CanonicalExecutionRecord
 
 
 def _suite_label(value: Any) -> str:
-    """Return a compact human-readable suite label safe for Markdown."""
+    """生成简短、可读且适合写入 Markdown 的评估集名称。"""
     label = str(value or "Evaluation").strip()
     return label or "Evaluation"
 
 
 def _suite_prefix(value: Any) -> str:
-    """Return a filesystem-safe report prefix without changing dataset bytes."""
+    """生成文件系统安全的报告前缀，不改动数据集原始内容。"""
     label = _suite_label(value)
     cleaned = re.sub(r"[^0-9A-Za-z._+\-\u4e00-\u9fff]+", "-", label).strip("-._")
     return cleaned or "Evaluation"
@@ -74,7 +82,7 @@ def _percentile(values: Sequence[float], p: float) -> float | None:
 
 
 def _report_record(record: CanonicalExecutionRecord) -> CanonicalExecutionRecord:
-    """Return a report-only compatibility view for current and legacy CERs."""
+    """为当前和历史 CER 生成仅供报告使用的兼容视图。"""
     clone = CanonicalExecutionRecord.from_dict(record.to_dict())
     dimensions = _dict(clone.evaluation.get("dimensions"))
 
@@ -817,7 +825,7 @@ def _retrieval_signal_markdown(
 
 
 def _source_label(source_id: Any) -> str:
-    """Return a compact source label, preserving an optional numeric prefix."""
+    """生成简短来源标签，并保留可选的数字前缀。"""
     value = str(source_id or "").strip()
     if not value:
         return NOT_OBSERVED
@@ -1072,7 +1080,7 @@ def _retrieval_source_distribution_markdown(
             if route == "DECOMPOSE" or subquery_events:
                 lines.append(f"- merged: {_source_sequence(merged)}")
 
-        # Only expose final separately when it is meaningfully different from original/merged.
+        # 只有 final 与 original 或 merged 确实不同时，才单独展示 final，避免重复信息。
         baseline_items = merged if (route == "DECOMPOSE" or has_round2) and merged else original_items
         if _source_sequence(selected) != _source_sequence(baseline_items):
             lines.append(f"- final: {_source_sequence(selected)}")
@@ -1114,7 +1122,7 @@ def _retrieval_source_distribution_markdown(
 
 
 def _diagnostic_chunk_ref(raw: Any) -> str:
-    """Compact but unique chunk locator for detailed retrieval diagnostics."""
+    """为详细检索诊断生成简短但可唯一定位的 chunk 引用。"""
     item = _dict(raw)
     base = _chunk_ref(item)
     chunk_id = str(item.get("chunk_id") or "")
@@ -1764,7 +1772,7 @@ def build_evaluation_reports(
     *,
     suite_label: str = "Evaluation",
 ) -> dict[str, Path]:
-    """Write deterministic CER projections for any project evaluation suite."""
+    """为任意项目评估集写出确定性的 CER 报告投影。"""
     items = list(records)
     report_items = [_report_record(record) for record in items]
     label = _suite_label(suite_label)

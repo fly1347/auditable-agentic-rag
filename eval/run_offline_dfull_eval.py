@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Run the CER-native post-run D-full evaluation and write one auditable pack."""
+"""
+程序作用：
+对冻结 CER 执行离线 D-full 后评估，并生成可追溯、可复核的一套评估产物。
+
+整体结构：
+1）读取 CER、题集和可选的历史离线记录；
+2）执行预算预检与逐题 classifier、citation、conflict、uncertainty 评估；
+3）原子写入离线记录、报告、账本和清单。
+"""
 
 from __future__ import annotations
 
@@ -171,6 +179,7 @@ def _preflight_budget_reason(
     return None
 
 
+# 执行离线 D-full 评估并写出审计包。
 def main() -> int:
     args = arguments()
     if args.classifier_mode == "llm" and not args.allow_provider_calls:

@@ -1,4 +1,12 @@
-"""Versioned source-level ACL registry and immutable propagation helpers."""
+"""
+程序作用：
+维护带版本的来源级 ACL 注册表，并把来源权限不可变地传播到文档和 chunk 元数据。
+
+整体结构：
+1）normalize_acl 校验并规范化可见级别、角色、用户组和租户字段；
+2）SourceACLRegistry 负责从 YAML 加载、查询并导出来源策略；
+3）validate_chunk_acl 与 propagate_document_acl 检查 lineage 并防止权限在切分时被篡改或丢失。
+"""
 
 from __future__ import annotations
 
@@ -44,8 +52,7 @@ def normalize_acl(source_id: str, raw: Mapping[str, Any]) -> dict[str, Any]:
         raise SourceRegistryError(
             f"ACL source_id mismatch: registry={source_id} acl={declared_source}"
         )
-    # Preserve declared order for a byte-level migration proof while removing
-    # duplicates. Access evaluation still treats these lists as sets.
+    # 去重时保留声明顺序，便于迁移前后做字节级核对；实际权限判断仍把这些列表视为集合。
     roles = list(dict.fromkeys(str(item) for item in list(raw.get("allowed_roles", []) or [])))
     groups = list(dict.fromkeys(str(item) for item in list(raw.get("allowed_groups", []) or [])))
     tenant = raw.get("tenant_id")
@@ -158,7 +165,7 @@ def validate_chunk_acl(chunk: Chunk) -> dict[str, Any]:
 
 
 def propagate_document_acl(document: Document, metadata: Mapping[str, Any]) -> dict[str, Any]:
-    """Copy document ACL to chunk metadata and reject mutation/missing lineage."""
+    """把文档 ACL 复制到 chunk 元数据，并拒绝权限改写或 lineage 缺失。"""
     document_metadata = dict(document.metadata or {})
     raw = document_metadata.get("acl")
     if not isinstance(raw, Mapping):

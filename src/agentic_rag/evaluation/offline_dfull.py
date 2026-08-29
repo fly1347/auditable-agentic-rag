@@ -1,4 +1,12 @@
-"""CER-native post-run D-full evaluation pipeline."""
+"""
+程序作用：
+在主链运行结束后，直接基于冻结 CER 执行 D-full 分类、引用支持、冲突与不确定性评估。
+
+整体结构：
+1）辅助函数从 CER 提取题目预期、提示证据、最终证据和 sufficiency 观察；
+2）依次运行 classifier、citation、conflict、uncertainty 四类离线阶段；
+3）run_offline_dfull_record 汇总阶段记录、模型调用、用量和来源绑定。
+"""
 
 from __future__ import annotations
 
@@ -141,7 +149,7 @@ def run_offline_dfull_record(
     evaluation_config_sha256: str | None = None,
     reused_classifier_record: OfflineEvaluationRecord | None = None,
 ) -> OfflineEvaluationRecord:
-    """Run classifier/citation/conflict/uncertainty against one frozen CER."""
+    """针对一条冻结 CER 运行分类、引用、冲突和不确定性评估。"""
     mode = str(classifier_mode).strip().lower()
     if mode not in {"rule", "llm", "skip", "reuse"}:
         raise ValueError("classifier_mode must be rule, llm, skip, or reuse")

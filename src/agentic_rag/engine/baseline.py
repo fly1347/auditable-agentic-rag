@@ -1,7 +1,11 @@
-"""Temporary adapter around the historical query pipeline.
+"""
+程序作用：
+为公开默认 baseline 链路提供引擎适配器，复用历史 query pipeline，并把执行过程统一投影成 CER。
 
-The adapter emits CER and accepts shared process-level dependencies. Correctness
-stages will be extracted behind this boundary before the orchestrated cutover.
+整体结构：
+1）EngineResult 统一返回业务答案与规范执行记录；
+2）BaselineEngineAdapter 保存配置和进程级依赖；
+3）execute 调用共享在线阶段完成一次 baseline 查询。
 """
 
 from __future__ import annotations
@@ -23,6 +27,7 @@ class EngineResult:
 
 
 class BaselineEngineAdapter:
+    """把 baseline 查询链路包装成统一引擎接口。"""
     name = "baseline_adapter"
 
     def __init__(

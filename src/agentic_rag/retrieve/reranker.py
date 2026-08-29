@@ -6,6 +6,11 @@
 4）默认使用 sentence-transformers CrossEncoder 加载 BAAI/bge-reranker-base；
 5）采用懒加载，避免 baseline 路径产生额外初始化开销。
 
+整体结构：
+1）RerankResult 保存重排后 chunk、分数与模型信息；
+2）gap 与触发函数判断是否需要 selective rerank；
+3）CrossEncoderReranker 懒加载模型并执行实际重排。
+
 说明：
 - 本模块只在 rerank 开关开启时被调用；
 - 若本地缺少 sentence-transformers，可按报错信息安装后再运行；

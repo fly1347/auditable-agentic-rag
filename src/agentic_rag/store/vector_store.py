@@ -132,9 +132,7 @@ class LocalVectorStore:  # 本地向量库实现  # noqa: E402
         if q.shape[1] != self._vectors.shape[1]:  # 维度检查  # noqa: E402
             raise ValueError(f"query dim 不一致：store={self._vectors.shape[1]} query={q.shape[1]}")  # 抛错  # noqa: E402
         scores = (self._vectors @ q.T).reshape(-1)  # 点积（向量归一化时等价 cosine）  # noqa: E402
-        # ACL/tenant filtering happens before TopK selection.  Computing the
-        # similarity matrix is still O(N), but denied rows can no longer occupy
-        # the finite TopK window and starve authorized evidence.
+        # ACL 与租户过滤必须先于 TopK 选择。相似度矩阵仍是 O(N)，但无权限候选不会再挤占有限窗口、排除有权限证据。
         if predicate is None:
             eligible = np.arange(scores.shape[0], dtype=np.int64)
         else:

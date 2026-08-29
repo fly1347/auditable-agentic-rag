@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Build the non-overlapping online/offline/RAGAS timing, token, and cost ledger."""
+"""
+程序作用：
+汇总在线主链、离线 D-full 与 RAGAS 三类评估记录，生成互不重叠的耗时、Token 和成本账本。
+
+整体结构：
+1）读取并清洗三类 JSONL 记录，统一模型调用字段；
+2）按评估类别计算覆盖率、耗时、Token 与成本汇总；
+3）输出明细 CSV、汇总 JSON 和便于核对的 Markdown 报告。
+"""
 
 from __future__ import annotations
 
@@ -166,9 +174,7 @@ def _category_summary(
         values = [value for value in observed if value is not None]
         unknown_count = len(calls) - len(values)
         observed_sum = sum(values)
-        # A partial sum must not masquerade as a complete provider total.  Keep
-        # the observed subtotal for diagnostics, but make the canonical total
-        # null whenever at least one contributing call omitted the field.
+        # 部分调用缺字段时，已知小计只用于诊断；规范总计必须留空，不能伪装成完整账单。
         row[key] = observed_sum if not unknown_count else None
         row[f"{key}_observed_sum"] = observed_sum
         row[f"{key}_unknown_call_count"] = unknown_count
@@ -423,6 +429,7 @@ def _summary_markdown(
     return "\n".join(lines)
 
 
+# 读取三类评估产物并生成统一账本。
 def main() -> int:
     args = arguments()
     if args.output_dir.exists() and any(args.output_dir.iterdir()):

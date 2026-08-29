@@ -1,4 +1,12 @@
-"""Unified, independently reported evaluation assertions for CER."""
+"""
+程序作用：
+基于 CER 中已经记录的执行事实计算相互独立的评估断言，避免从答案文本反推未观测信号。
+
+整体结构：
+1）定义 pass、fail、not_observed、not_applicable 四种状态；
+2）辅助函数规范化映射、来源与断言明细；
+3）evaluate_record 分别评估行为、证据、引用、路由、安全、错误和资源预算。
+"""
 
 from __future__ import annotations
 
@@ -25,6 +33,7 @@ def _source_ids(items: Sequence[Mapping[str, Any]]) -> set[str]:
     return {str(item.get("source_id")) for item in items if item.get("source_id")}
 
 
+# 对一条 CER 的各评估维度分别给出状态与依据。
 def evaluate_record(
     record: CanonicalExecutionRecord,
     case: Mapping[str, Any],

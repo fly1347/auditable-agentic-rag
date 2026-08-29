@@ -1,3 +1,13 @@
+"""
+程序作用：
+把调试响应和 CER 中的关键执行事实整理成可持久化审计记录，同时对查询、提示和模型调用做摘要或哈希处理。
+
+整体结构：
+1）基础辅助函数负责稳定序列化、哈希、字段读取和最小摘要；
+2）AuditRecord 定义请求、策略、证据、用量与结果的审计结构；
+3）build_audit_record_from_debug_response 从调试响应生成一条审计记录。
+"""
+
 from __future__ import annotations
 
 import hashlib
@@ -164,6 +174,7 @@ class AuditRecord:
         return asdict(self)
 
 
+# 从调试响应提取必要事实并生成脱敏审计记录。
 def build_audit_record_from_debug_response(response: Any) -> AuditRecord:
     request_id = str(_get_attr(response, "request_id", "") or "")
     policy_trace = _plain(_get_attr(response, "policy_trace", {}) or {})

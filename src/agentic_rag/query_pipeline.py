@@ -6,6 +6,11 @@
 4）继续保持兼容现有 Retriever / Generator / Answer 结构，不改旧字段语义，只新增 flags 与 agentic_steps；
 5）本版新增 selective rerank：仅在分数压缩区间触发重排，并记录 before/after 观测信息；
 6）对 rewrite / decompose / rerank 的外部依赖失败做结构化降级，避免服务层裸 500。
+
+整体结构：
+1）配置与模型辅助函数负责 generator、rewrite、decompose 和 sufficiency 调用；
+2）检索辅助函数执行 ACL、路由、多路融合、可选重排与二轮检索；
+3）query 串起受限工作流并返回 Answer，run 提供兼容入口。
 """
 
 from __future__ import annotations
@@ -446,9 +451,9 @@ def _ordered_unique_source_ids(chunks: List[Chunk]) -> List[str]:
 
 
 def _user_context_from_payload(payload: Optional[Dict[str, Any]]) -> UserContext:
-    """Convert a principal projection produced by a trusted adapter.
+    """把可信适配器生成的主体投影转换成检索 ACL 所需用户上下文。
 
-    Direct callers cannot grant roles by passing a dict without ``trusted``.
+    直接调用方若未带 ``trusted`` 标记，不能通过普通字典自行授予角色。
     """
     data = dict(payload or {})
     if data.get("trusted") is not True:
@@ -628,7 +633,7 @@ def _set_rerank_runtime_attrs(
 
 
 def _retrieval_observation_kwargs(rr: RetrievalResult) -> Dict[str, Any]:
-    """Carry canonical observations across immutable RetrievalResult rewrites."""
+    """在不可变 RetrievalResult 重建时完整传递规范检索观察字段。"""
     return {
         "retrieval_events": list(getattr(rr, "retrieval_events", []) or []),
         "merge_trace": dict(getattr(rr, "merge_trace", {}) or {}),
@@ -1084,8 +1089,7 @@ def _retrieve_once(
             user_context=user_context,
         )
     except TypeError as exc:
-        # Transitional fake/custom retrievers may still implement the old
-        # signature.  Production Retriever accepts the trusted context.
+        # 过渡期测试替身或自定义检索器可能仍使用旧签名；生产 Retriever 接受可信用户上下文。
         if "user_context" not in str(exc):
             raise
         out = retriever.run(query=str(query), topk=int(topk))
@@ -1308,7 +1312,7 @@ def _judge_evidence_sufficiency(
     judge_profile: Optional[GeneratorProfileConfig],
     max_prompt_chunks: int,
 ) -> Tuple[str, float, Any, Dict[str, Any]]:
-    """Run one configured sufficiency contract and retain its exact input view."""
+    """执行当前配置的 sufficiency 合同，并保留本次判断看到的精确输入。"""
 
     if mode == "structured":
         packet = build_evidence_packet(

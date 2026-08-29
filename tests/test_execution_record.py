@@ -1,3 +1,13 @@
+"""
+程序作用：
+验证 CER 的序列化、公开投影脱敏、执行事件和只追加 JSONL 写入等核心记录契约。
+
+整体结构：
+1）_record 构造含私有证据、提示和连接信息的最小 CER；
+2）ExecutionRecordTests 检查内部记录保真与公开投影脱敏；
+3）同时验证事件顺序、完成状态和 JSONL 落盘行为。
+"""
+
 from __future__ import annotations
 
 import unittest
@@ -26,6 +36,7 @@ def _record() -> CanonicalExecutionRecord:
 
 
 class ExecutionRecordTests(unittest.TestCase):
+    """覆盖规范执行记录的持久化与脱敏边界。"""
     def test_round_trip_and_sequence(self) -> None:
         record = _record()
         restored = CanonicalExecutionRecord.from_dict(record.to_dict())

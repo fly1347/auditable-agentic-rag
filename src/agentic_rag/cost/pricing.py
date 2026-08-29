@@ -340,8 +340,7 @@ def estimate_usage_costs(usage: Dict[str, Any]) -> Dict[str, Any]:
         observed_sum = sum(values)
         totals[f"{token_key}_observed_sum"] = observed_sum
         totals[f"{token_key}_unknown_call_count"] = unknown_count
-        # The per-call ledger is canonical. Never preserve a historical
-        # aggregate that may have converted missing detail fields into zero.
+        # 逐次调用底账才是规范来源；不要沿用可能把缺失明细错误转成 0 的历史汇总值。
         totals[token_key] = observed_sum if not unknown_count else None
 
     observed_cost_sum = _sum_optional_costs(

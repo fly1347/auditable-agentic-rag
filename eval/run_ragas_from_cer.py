@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Run per-case/per-metric RAGAS with an explicit model-call ledger."""
+"""
+程序作用：
+按题目、按指标运行 RAGAS，并完整记录每次评估模型调用的耗时、Token 与成本。
+
+整体结构：
+1）加载 CER 派生的 RAGAS 输入及运行配置；
+2）兼容不同 RAGAS 模型包装器，逐题执行三个质量指标；
+3）写入原始记录、分档结果、用量明细和汇总报告。
+"""
 
 from __future__ import annotations
 
@@ -119,7 +127,7 @@ def _first_generation(response: Any) -> Any:
 
 
 def extract_usage(response: Any) -> dict[str, Any]:
-    """Extract OpenAI-compatible usage without converting unknown fields to zero."""
+    """提取 OpenAI-compatible 用量字段，未知值保持为空，不擅自记成 0。"""
     llm_output = getattr(response, "llm_output", None)
     llm_output = dict(llm_output) if isinstance(llm_output, Mapping) else {}
     raw = llm_output.get("token_usage") or llm_output.get("usage") or {}
@@ -180,12 +188,11 @@ def _provider(model: str, base_url: str) -> str:
 
 
 def _completion_transport(model: str, base_url: str) -> str:
-    """Describe how multi-generation metric requests reach the provider.
+    """说明多候选指标如何调用模型服务。
 
-    DeepSeek's OpenAI-compatible endpoint currently accepts only ``n=1``.
-    RAGAS ResponseRelevancy defaults to three generations, so the evaluator
-    preserves that metric contract by issuing three bounded concurrent single-
-    generation requests and merging the generations locally.
+    DeepSeek 的 OpenAI-compatible 接口当前只接受 ``n=1``。RAGAS 的
+    ResponseRelevancy 默认需要三个候选，因此这里并发发送三次受限的单候选请求，
+    再在本地合并，保持指标原有契约。
     """
     if _provider(model, base_url) == "deepseek":
         return "parallel_n1_merge"
@@ -193,7 +200,7 @@ def _completion_transport(model: str, base_url: str) -> str:
 
 
 def _merge_single_prompt_results(results: list[Any], result_type: Any) -> Any:
-    """Merge repeated n=1 LLMResults into one result with n generations."""
+    """把多次 n=1 的模型结果合并成一个含 n 个候选的结果。"""
     if not results:
         raise ValueError("cannot merge an empty result list")
     generations: list[Any] = []
@@ -202,13 +209,12 @@ def _merge_single_prompt_results(results: list[Any], result_type: Any) -> Any:
         if len(batches) != 1:
             raise ValueError("sequential completion result must contain exactly one prompt batch")
         generations.extend(list(batches[0]))
-    # Usage is recorded on each underlying provider call by UsageLedgerCallback.
-    # Do not synthesize a combined token_usage object that could be counted twice.
+    # 每次底层模型调用已经由 UsageLedgerCallback 记账，不再合成可能导致重复统计的总用量对象。
     return result_type(generations=[generations], llm_output=None)
 
 
 def _multi_n_compat_wrapper_class(base_wrapper_type: Any, result_type: Any) -> Any:
-    """Build a RAGAS wrapper that adapts unsupported n>1 calls to n=1."""
+    """为不支持 n>1 的模型包装器增加逐次 n=1 调用兼容层。"""
 
     class MultiNCompatWrapper(base_wrapper_type):
         def generate_text(
@@ -286,12 +292,11 @@ def _instantiate_ragas_wrapper(
     result_type: Any,
     completion_transport: str,
 ) -> Any:
-    """Instantiate the concrete wrapper before applying the compatibility subclass.
+    """先实例化实际包装器，再按需要套用多候选兼容子类。
 
-    RAGAS 0.4.3 exports ``LangchainLLMWrapper`` through a deprecation proxy.
-    The proxy is callable but is not itself a class, so it cannot be used as a
-    subclass base.  Resolve one native instance first, then subclass its real
-    concrete type for the DeepSeek-only transport adapter.
+    RAGAS 0.4.3 通过弃用代理导出 ``LangchainLLMWrapper``。该代理可以调用，
+    但本身不是类，不能直接作为父类。这里先取得原生实例，再继承它的实际类型，
+    为 DeepSeek 添加专用传输适配。
     """
     wrapper = wrapper_factory(chat)
     if completion_transport != "parallel_n1_merge":
@@ -655,7 +660,7 @@ def render_ragas_timing_usage_cost_report(
     input_rows: Optional[list[dict[str, Any]]] = None,
     run_manifest: Optional[Mapping[str, Any]] = None,
 ) -> tuple[str, str]:
-    """Render per-metric RAGAS timing / token / cost details from existing records."""
+    """根据既有记录生成按指标拆分的 RAGAS 耗时、Token 与成本明细。"""
     run_manifest = dict(run_manifest or {})
     profile = _profile_from_input_rows(input_rows)
     if profile == "unknown":
@@ -773,7 +778,7 @@ RAGAS_SEGMENT_DISPLAY = {
 
 
 def _grade_ragas_metric(metric: str, raw_value: Any) -> str:
-    """Project-local A/B/C/D segmentation; round to two decimals first."""
+    """按本项目口径先四舍五入到两位小数，再划分 A/B/C/D 档。"""
     try:
         value = round(float(raw_value), 2)
     except (TypeError, ValueError):
@@ -938,7 +943,7 @@ def render_ragas_result_report(
     run_manifest: Optional[Mapping[str, Any]] = None,
     prepare_manifest: Optional[Mapping[str, Any]] = None,
 ) -> tuple[str, str]:
-    """Render one human-readable RAGAS result report from existing records."""
+    """根据既有记录生成便于人工阅读的 RAGAS 结果报告。"""
     run_manifest = dict(run_manifest or {})
     prepare_manifest = dict(prepare_manifest or {})
     profile = _profile_from_input_rows(input_rows)
@@ -1267,6 +1272,7 @@ def _write_reports(
     return report_path
 
 
+# 运行逐题 RAGAS 评估并生成记录与报告。
 def main() -> int:
     args = arguments()
     if not args.allow_provider_calls:

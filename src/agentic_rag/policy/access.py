@@ -1,7 +1,11 @@
-"""Phase E ACL policy primitives.
+"""
+程序作用：
+定义来源 ACL 的基础数据模型与判定规则，并在检索候选进入 TopK 结果前执行用户、角色、用户组和租户过滤。
 
-本文件只负责 Step 5 的最小 ACL 数据模型与 demo 用户。
-主链路过滤 hook 留到 Step 7。
+整体结构：
+1）UserContext、SourceACL、PolicyDecision 描述调用者、来源权限和判定结果；
+2）parse_source_acl 与 can_read_source 解析并判断单个来源；
+3）filter_sources_by_acl 批量过滤候选并保留允许、拒绝明细。
 """
 
 from __future__ import annotations

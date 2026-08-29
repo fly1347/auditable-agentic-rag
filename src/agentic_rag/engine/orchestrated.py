@@ -1,4 +1,12 @@
-"""Target orchestrated engine over the corrected shared stage graph."""
+"""
+程序作用：
+提供 orchestrated profile 的引擎入口，在共享执行拓扑上启用结构化 sufficiency 合同。
+
+整体结构：
+1）OrchestratedEngine 保存配置、检索器和可替换查询函数；
+2）execute 创建执行记录并调用共享在线阶段；
+3）返回与 baseline 一致的 EngineResult，便于统一服务层处理。
+"""
 
 from __future__ import annotations
 
@@ -13,6 +21,7 @@ from agentic_rag.policy.principal import Principal
 
 
 class OrchestratedEngine:
+    """把 orchestrated 查询链路包装成统一引擎接口。"""
     name = "orchestrated_engine"
 
     def __init__(

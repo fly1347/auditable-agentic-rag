@@ -114,7 +114,7 @@ class EmbeddingModel:  # EmbeddingModel：统一 embed 接口  # noqa: E402
         self.dim = int(getattr(self._model, "get_sentence_embedding_dimension")())  # 记录维度  # noqa: E402
 
     def content_token_counts(self, texts: List[str]) -> List[int]:
-        """Count untruncated content tokens with the embedding model tokenizer."""
+        """使用 embedding 模型 tokenizer 统计未经截断的正文 Token 数。"""
         tokenizer = getattr(self._model, "tokenizer", None)
         if tokenizer is None:
             raise RuntimeError("embedding model does not expose a tokenizer")
@@ -128,11 +128,10 @@ class EmbeddingModel:  # EmbeddingModel：统一 embed 接口  # noqa: E402
         return [len(list(item)) for item in encoded.get("input_ids", [])]
 
     def content_token_offsets(self, text: str) -> List[tuple[int, int]]:
-        """Return exact untruncated content-token character offsets for one text.
+        """返回单段文本中未经截断的正文 Token 精确字符偏移。
 
-        Production structure-first splitting uses this same tokenizer contract as
-        the final embedding hard gate, so token budgeting and embedding cannot
-        silently disagree.
+        生产用结构优先切分与最终 embedding 硬门禁共用同一 tokenizer 契约，
+        防止 Token 预算和实际向量化口径静默不一致。
         """
         tokenizer = getattr(self._model, "tokenizer", None)
         if tokenizer is None:
@@ -151,7 +150,7 @@ class EmbeddingModel:  # EmbeddingModel：统一 embed 接口  # noqa: E402
         )
         offsets = list(encoded.get("offset_mapping", []) or [])
         if not offsets and text:
-            # Whitespace-only text may legitimately produce no content tokens.
+            # 纯空白文本可能确实不产生正文 Token，属于合法情况。
             token_count = self.content_token_counts([str(text)])[0]
             if token_count:
                 raise RuntimeError("embedding tokenizer did not return offset_mapping")
@@ -163,7 +162,7 @@ class EmbeddingModel:  # EmbeddingModel：统一 embed 接口  # noqa: E402
         *,
         max_content_tokens: int = 510,
     ) -> Dict[str, int]:
-        """Fail the index build before embedding truncation can lose content."""
+        """在 embedding 截断可能丢失正文前，直接终止索引构建。"""
         counts = self.content_token_counts(texts)
         violating = [count for count in counts if count > int(max_content_tokens)]
         if violating:

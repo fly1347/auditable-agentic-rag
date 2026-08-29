@@ -163,10 +163,9 @@ class WorkflowRunner:
         return WorkflowFinalStatus.ANSWERED
 
     def _add_route_steps(self, state: WorkflowState, answer: Any, flags: Dict[str, Any]) -> None:
-        """Record only the route that controlled this execution.
+        """只记录本次实际控制执行路径的 route。
 
-        Classifier comparison moved to offline CER replay. The online wrapper
-        must never issue a post-answer or post-refusal model call.
+        classifier 对比已经移到离线 CER 回放；在线包装器不能在回答或拒答之后再次调用模型。
         """
         legacy_steps = getattr(answer, "agentic_steps", None)
         if legacy_steps is None:

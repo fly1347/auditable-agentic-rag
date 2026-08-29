@@ -83,7 +83,7 @@ DEMO_USER_CONTEXTS: Dict[str, Dict[str, str]] = {
 
 
 # ---------------------------------------------------------------------------
-# HTTP helpers
+# HTTP 请求辅助函数
 # ---------------------------------------------------------------------------
 
 
@@ -143,12 +143,12 @@ def _request(
 
 
 def get_json(path: str, *, timeout: float = 30) -> Tuple[Optional[Any], Optional[str], Optional[requests.Response], float]:
-    """GET JSON/text endpoint。"""
+    """请求 GET 接口，并兼容返回 JSON 或纯文本。"""
     return _request("GET", path, timeout=timeout)
 
 
 def post_json(path: str, payload: Dict[str, Any]) -> Tuple[Optional[Any], Optional[str], Optional[requests.Response], float]:
-    """POST JSON endpoint。"""
+    """向 POST 接口提交 JSON，并解析响应内容。"""
     return _request("POST", path, json_body=payload)
 
 
@@ -210,7 +210,7 @@ def render_demo_user_context_selector() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Rendering helpers
+# 通用页面渲染辅助函数
 # ---------------------------------------------------------------------------
 
 
@@ -420,7 +420,7 @@ def _format_ms(value: Any) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Documents page
+# 文档管理页面
 # ---------------------------------------------------------------------------
 
 
@@ -553,7 +553,7 @@ def render_document_card(doc: Dict[str, Any]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Chat page
+# 聊天页面
 # ---------------------------------------------------------------------------
 
 
@@ -638,7 +638,7 @@ def render_chat_response(payload: Dict[str, Any], fallback_elapsed_ms: Optional[
 
 
 # ---------------------------------------------------------------------------
-# Metrics page
+# 指标页面
 # ---------------------------------------------------------------------------
 
 
@@ -773,7 +773,7 @@ def _parse_prometheus_metrics(metrics_text: str) -> List[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# D-full Debug rendering helpers
+# D-full 调试信息渲染辅助函数
 # ---------------------------------------------------------------------------
 
 
@@ -1277,7 +1277,7 @@ def render_observability_debug(payload: Dict[str, Any]) -> None:
         st.code(_to_pretty_json(data), language="json")
 
 # ---------------------------------------------------------------------------
-# Debug page
+# 调试页面
 # ---------------------------------------------------------------------------
 
 
@@ -1597,7 +1597,7 @@ def _extract_rerank_info(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Entrypoint
+# 页面入口
 # ---------------------------------------------------------------------------
 
 

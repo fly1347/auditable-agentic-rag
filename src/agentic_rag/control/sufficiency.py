@@ -342,7 +342,7 @@ def judge_sufficiency(
     )
     return result, total_ms
 
-# ======== D-full Step 10: EvidencePacket structured sufficiency ========
+# ======== D-full Step 10：基于 EvidencePacket 的结构化充分性判断 ========
 
 from dataclasses import asdict
 from hashlib import sha256

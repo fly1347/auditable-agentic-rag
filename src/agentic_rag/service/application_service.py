@@ -1,4 +1,12 @@
-"""Single controlled application service for every query entry point."""
+"""
+程序作用：
+为 CLI、API、UI 和评估入口提供唯一受控的查询应用服务，统一身份、profile、并发、安全、审计和错误处理。
+
+整体结构：
+1）ApplicationResult 与异常类型描述成功、拒绝和失败结果；
+2）RagApplicationService 校验命令与可信身份，选择引擎并执行安全前置检查；
+3）执行完成后写 CER、策略轨迹和结果，异常时也保留可审计记录。
+"""
 
 from __future__ import annotations
 
@@ -35,6 +43,7 @@ class ApplicationResult:
 
 
 class RagApplicationService:
+    """统一编排所有查询入口的应用层执行流程。"""
     def __init__(
         self,
         config: AppConfig,

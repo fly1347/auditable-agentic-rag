@@ -1,8 +1,11 @@
-"""Provider data-egress decisions evaluated before every provider attempt.
+"""
+程序作用：
+在每次模型服务请求前执行数据出站判断，确保重试或未来新增 provider 也不能绕过权限策略。
 
-The application service opens one request-scoped policy context.  Low-level
-provider clients still perform the check themselves immediately before each
-network attempt, so retries and future fallback providers cannot bypass policy.
+整体结构：
+1）EgressDecision 与 EgressRuntimeContext 描述出站结果和请求级策略上下文；
+2）assess_provider_egress 根据数据敏感度、身份能力和目标 provider 判断是否允许；
+3）egress_scope 安装请求级上下文，authorize_provider_attempt 在真正联网前再次检查并记录。
 """
 
 from __future__ import annotations
@@ -19,7 +22,7 @@ RESTRICTED_VISIBILITIES = {"internal_demo", "internal", "confidential", "private
 
 
 class EgressDenied(RuntimeError):
-    """Raised before a provider request when data-egress policy denies it."""
+    """数据出站策略拒绝请求时，在联网前抛出的异常。"""
 
 
 @dataclass(frozen=True)
@@ -81,7 +84,7 @@ def assess_provider_egress(
 
 
 def chunk_visibilities(chunks: Iterable[object]) -> tuple[str, ...]:
-    """Extract source visibility from chunk metadata without reading chunk text."""
+    """只读取 chunk 元数据中的来源可见级别，不接触正文。"""
     values: list[str] = []
     for chunk in chunks:
         metadata = dict(getattr(chunk, "metadata", {}) or {})
@@ -99,7 +102,7 @@ def egress_scope(
     default_visibilities: Sequence[str],
     recorder: Optional[Callable[[dict[str, object]], None]] = None,
 ) -> Iterator[None]:
-    """Install request-scoped policy inputs for all nested provider clients."""
+    """为当前请求下的所有模型客户端安装统一出站策略输入。"""
     token = _RUNTIME_CONTEXT.set(
         EgressRuntimeContext(
             config=config,
@@ -120,7 +123,7 @@ def authorize_provider_attempt(
     attempt: int,
     visibilities: Optional[Iterable[str]] = None,
 ) -> EgressDecision:
-    """Authorize and record one concrete provider attempt, then fail closed."""
+    """检查并记录一次实际模型服务调用；无法确认时按拒绝处理。"""
     context = _RUNTIME_CONTEXT.get()
     config = context.config if context is not None else EgressConfig()
     selected = tuple(visibilities or ())

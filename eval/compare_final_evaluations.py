@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Compare the frozen baseline and orchestrated final-evaluation bundles.
+"""
+程序作用：
+对比已冻结的 baseline 与 orchestrated 最终评估包，全程只读取既有记录，不再调用模型服务。
 
-This is a zero-provider-call projection over already-produced machine records.  It
-compares online behavior/resources, sufficiency-judge overhead, D-full signals,
-RAGAS scores/grade migrations, and the three-category evaluation ledger.
+整体结构：
+1）加载两套 CER、D-full、RAGAS 与成本账本；
+2）比较在线行为、资源消耗、sufficiency 开销、质量信号和分档迁移；
+3）输出总体对比、逐题差异 CSV 与 Markdown 报告。
 """
 
 from __future__ import annotations
@@ -930,6 +933,7 @@ def _markdown(
     return "\n".join(lines) + "\n", payload
 
 
+# 汇总两套评估包并写出完整对比产物。
 def build_comparison(
     baseline_dir: Path,
     orchestrated_dir: Path,

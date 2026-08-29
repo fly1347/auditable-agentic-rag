@@ -1,12 +1,12 @@
-"""Coverage-preserving Markdown/text splitter with exact source offsets.
+"""
+程序作用：
+按精确原文偏移切分 Markdown 或纯文本，并保证内容覆盖完整。生产 ``markdown`` 模式以结构优先、Token 预算为硬约束，不会悄悄退回字符长度切分。
 
-Production ``markdown`` mode is structure-first and tokenizer-budgeted:
-Markdown hierarchy -> largest fitting subtree -> recursive descent -> atomic
-block packing -> last-resort token windows.  It never silently falls back to
-character limits.
-
-``legacy_char`` exists only to reproduce the historical 1200/200 index during
-migration. ``char`` and ``token`` remain explicit compatibility modes.
+整体结构：
+1）解析 Markdown 层级、代码围栏、表格、列表和原子文本块；
+2）优先保留能放入预算的完整子树，超限时递归拆解并打包相邻单元；
+3）只在最后兜底使用 Token 窗口，同时提供覆盖率与结构保持校验；
+4）``legacy_char`` 仅用于复现旧索引，``char`` 和 ``token`` 为显式兼容模式。
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from agentic_rag.types import Chunk, Document
 
 
 class TokenBudgetProvider(Protocol):
-    """Minimal tokenizer contract required by production Markdown splitting."""
+    """生产 Markdown 切分所需的最小 tokenizer 接口。"""
 
     def content_token_counts(self, texts: List[str]) -> List[int]: ...
 
@@ -33,15 +33,14 @@ class TokenBudgetProvider(Protocol):
 class SplitterConfig:
     mode: str = "markdown"
 
-    # Compatibility knobs for explicit char/token/legacy_char modes. Production
-    # markdown mode does not use these values to decide where normal chunks end.
+    # 这些参数只服务显式 char、token、legacy_char 模式；生产 markdown 模式不靠它们决定普通 chunk 边界。
     chunk_size: int = 420
     overlap: int = 60
     min_size: int = 80
     preserve_code_block: bool = True
     boundary_search: int = 120
 
-    # Production Markdown contract. Normal structure is never split by chars.
+    # 生产 Markdown 契约：正常结构绝不按字符数强行切断。
     content_token_limit: int = 510
 
     def validate(self) -> None:
@@ -316,7 +315,7 @@ def _looks_like_table(line: str) -> bool:
 
 
 def _atomic_blocks(text: str, start: int, end: int) -> list[_AtomicBlock]:
-    """Parse a contiguous section span into coverage-preserving atomic blocks."""
+    """把连续章节范围解析成不丢字符的原子块。"""
     if start >= end:
         return []
     local = text[start:end]
@@ -396,7 +395,7 @@ def _atomic_blocks(text: str, start: int, end: int) -> list[_AtomicBlock]:
         blocks.append(_AtomicBlock(abs_start, min(block_end, end), "paragraph"))
         index = cursor
 
-    # Defensive exact coverage assertion before any token logic.
+    # 进入 Token 逻辑前先做精确覆盖断言，防止解析阶段已经丢字。
     cursor = start
     for block in blocks:
         if block.start != cursor or block.end < block.start:
@@ -460,7 +459,7 @@ def _forced_token_units(
     piece = text[start:end]
     offsets = [(int(left), int(right)) for left, right in provider.content_token_offsets(piece)]
     if not offsets:
-        # Token-free text (normally whitespace) is safe as one exact unit.
+        # 不含 Token 的文本通常只是空白，可以作为一个完整单元保留。
         return [_Unit(start, end, kind, level)]
     if any(left < 0 or right < left or right > len(piece) for left, right in offsets):
         raise RuntimeError("token budget provider returned invalid offset mapping")
@@ -642,7 +641,7 @@ def _pack_units(
     provider: TokenBudgetProvider,
     cfg: SplitterConfig,
 ) -> list[_Unit]:
-    """Continuously pack adjacent complete units without making headings hard cuts."""
+    """连续打包相邻完整单元，标题只提供结构信息，不强制形成硬切点。"""
     if not units:
         return []
     packed: list[_Unit] = []
@@ -849,10 +848,9 @@ def structure_preservation_violations(
     *,
     content_token_limit: int = 510,
 ) -> list[dict[str, object]]:
-    """Return fitting Markdown subtrees that were split across output chunks.
+    """找出本可整体放入预算、却被拆到多个输出 chunk 的 Markdown 子树。
 
-    A fitting subtree may be merged with adjacent structure; preservation means
-    its exact source span remains wholly contained in one emitted chunk.
+    子树可以与相邻结构合并；所谓结构保持，是指该子树的精确原文范围完整落在同一个输出 chunk 中。
     """
 
     def walk(nodes: Sequence[_SectionNode]) -> Iterable[_SectionNode]:
@@ -883,7 +881,7 @@ def structure_preservation_violations(
 
 
 def coverage_ratio(text: str, chunks: Sequence[Chunk]) -> float:
-    """Character coverage for a single source; overlap is counted once."""
+    """计算单个来源的字符覆盖率，重叠区间只计一次。"""
     if not text:
         return 1.0
     covered = bytearray(len(text))

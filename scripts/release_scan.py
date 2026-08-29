@@ -1,8 +1,11 @@
-"""Offline release hygiene scanner.
+"""
+程序作用：
+离线扫描待发布仓库中的凭据形态内容、禁止上传的环境文件、本机绝对路径和无效 Docker COPY 来源；任何命中都不打印秘密原文。
 
-Checks repository text files for credential-shaped values, forbidden environment
-files, machine-specific absolute paths, and Docker COPY sources that do not
-exist in the build context. It never prints matched secret values.
+整体结构：
+1）遍历可发布文本文件并跳过缓存、日志和产物目录；
+2）执行敏感值、环境文件、绝对路径与 Docker 构建上下文检查；
+3）输出脱敏后的发现列表，并用退出码表示发布扫描是否通过。
 """
 
 from __future__ import annotations
@@ -114,7 +117,7 @@ def _scan_text(path: Path, root: Path, text: str) -> list[Finding]:
         if "release-scan: allow" in line:
             continue
         if "${" in line:
-            # Compose/shell variable expansion names a key but does not contain it.
+            # Compose 或 shell 变量展开只引用密钥名称，并不包含密钥值本身。
             continue
         for code, pattern in SECRET_PATTERNS.items():
             if pattern.search(line):
@@ -158,6 +161,7 @@ def _scan_docker(root: Path) -> list[Finding]:
     return findings
 
 
+# 扫描整个发布目录并返回脱敏后的问题清单。
 def scan(root: Path) -> list[Finding]:
     root = root.resolve()
     findings: list[Finding] = []

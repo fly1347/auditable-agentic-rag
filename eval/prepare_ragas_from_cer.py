@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Prepare RAGAS input from the exact prompt contexts stored in CER."""
+"""
+程序作用：
+从 CER 中保存的实际提示上下文构造 RAGAS 输入，避免重新检索或重新拼装证据造成口径漂移。
+
+整体结构：
+1）读取 CER、回归题集与参考答案；
+2）逐题绑定实际上下文、答案、引用和来源信息；
+3）输出 RAGAS 输入 JSONL、预览报告与来源校验信息。
+"""
 
 from __future__ import annotations
 
@@ -52,6 +60,7 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+# 按题号把 CER 的实际执行事实转换成 RAGAS 输入行。
 def build_ragas_rows(
     records: list[CanonicalExecutionRecord],
     references: Mapping[str, Mapping[str, Any]],

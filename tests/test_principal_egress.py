@@ -1,3 +1,13 @@
+"""
+程序作用：
+验证可信身份解析和数据出站策略，确保角色、用户组、租户与公开出站能力不能由请求方伪造。
+
+整体结构：
+1）构造静态 token 身份配置与不同敏感级别数据；
+2）检查匿名、本地 CLI、评估和 API token 身份边界；
+3）断言允许、拒绝与请求级出站上下文均按策略执行。
+"""
+
 from __future__ import annotations
 
 import json
@@ -19,6 +29,7 @@ from agentic_rag.policy.principal import (
 
 
 class PrincipalAndEgressTests(unittest.TestCase):
+    """覆盖身份可信边界与模型服务出站权限。"""
     def test_static_token_resolves_trusted_principal(self) -> None:
         raw = json.dumps(
             {

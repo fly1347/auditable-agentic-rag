@@ -245,7 +245,7 @@ class HealthService:
         }
 
     def check_openrouter_config(self) -> Dict[str, Any]:
-        """Check the typed default generator profile without exposing endpoint/key metadata."""
+        """检查默认生成 profile 是否可用，不暴露 endpoint 或密钥元数据。"""
         profile = self.settings.generator.get_profile()
         local = profile.provider_tag in set(self.settings.egress.local_providers)
         api_key = os.getenv(profile.api_key_env, "") if profile.api_key_env else ""

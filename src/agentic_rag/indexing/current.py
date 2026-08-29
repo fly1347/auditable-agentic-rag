@@ -1,4 +1,12 @@
-"""Resolve the small atomic pointer to an immutable index build directory."""
+"""
+程序作用：
+读取轻量 current.json 原子指针，并解析到不可变的索引构建目录与 manifest。
+
+整体结构：
+1）CurrentIndex 描述当前 build_id、向量库目录和清单路径；
+2）_resolve_path 兼容项目相对路径与外部便携指针；
+3）load_current_index 校验指针，resolve_vector_store_dir 返回当前向量库目录。
+"""
 
 from __future__ import annotations
 
@@ -19,14 +27,14 @@ def _resolve_path(value: str, pointer_path: Path) -> Path:
     path = Path(value).expanduser()
     if path.is_absolute():
         return path.resolve()
-    # Pointers are normally project-relative. Fall back to pointer parent for
-    # portable externally supplied pointers.
+    # 指针通常相对项目目录解析；外部传入的便携指针则回退到指针文件所在目录。
     project_candidate = (Path.cwd() / path).resolve()
     if project_candidate.exists():
         return project_candidate
     return (pointer_path.parent / path).resolve()
 
 
+# 读取并校验 current.json，返回当前不可变索引构建信息。
 def load_current_index(pointer_path: str | Path) -> Optional[CurrentIndex]:
     pointer = Path(pointer_path).expanduser().resolve()
     if not pointer.exists():

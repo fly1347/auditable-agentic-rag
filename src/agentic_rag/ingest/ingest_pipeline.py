@@ -1,4 +1,12 @@
-"""Atomic offline index build: load → ACL → tokenizer-budgeted split → hard gate → embed → publish."""
+"""
+程序作用：
+原子执行离线索引构建：加载语料、绑定 ACL、按 tokenizer 预算切分、通过硬门禁、向量化并发布不可变索引。
+
+整体结构：
+1）IndexStats 记录构建规模、耗时、哈希与发布位置；
+2）辅助函数生成稳定 build_id、文件哈希和原子 JSON；
+3）index_corpus 在临时目录完成全流程校验后更新 current.json。
+"""
 
 from __future__ import annotations
 
@@ -81,10 +89,9 @@ def index_corpus(
     excluded_source_ids: Sequence[str] = ("internal/README.md",),
     embedder_factory: Optional[Callable[[EmbeddingConfig], object]] = None,
 ) -> IndexStats:
-    """Build an immutable index and atomically advance `current.json`.
+    """构建不可变索引，并在全部步骤成功后原子更新 `current.json`。
 
-    `rebuild` is retained for CLI compatibility. It never deletes the previous
-    build; a successful pointer switch makes rollback a one-file operation.
+    `rebuild` 仅为兼容 CLI 保留，不会删除旧构建；指针切换成功后，回滚只需恢复一个指针文件。
     """
     del rebuild, store_cfg
     started = time.perf_counter()

@@ -1,4 +1,12 @@
-"""Reports and ledgers for CER-native post-run D-full evaluation."""
+"""
+程序作用：
+把 CER 原生的离线 D-full 评估记录整理成逐题报告、阶段账本、模型调用表和运行清单。
+
+整体结构：
+1）辅助函数读取阶段、格式化数值并汇总用量和分布；
+2）生成总体摘要、逐题分析、耗时成本及机器 CSV；
+3）write_offline_reports 写报告集，write_manifest 写输入输出哈希清单。
+"""
 
 from __future__ import annotations
 
@@ -906,6 +914,7 @@ def _timing_markdown(
     return "\n".join(lines)
 
 
+# 将离线 D-full 记录写成完整的人读与机读报告集。
 def write_offline_reports(
     records: Iterable[OfflineEvaluationRecord],
     output_dir: str | Path,

@@ -70,18 +70,6 @@ D-full classifier、Citation Support、Conflict 和 Uncertainty 位于后置评�
 | 服务入口 | CLI、FastAPI、Streamlit、Docker Compose |
 | 安全基线 | 可信身份适配、query safety、egress gate、redaction、release scan |
 
-## 系统设计
-
-项目通过清晰的模块拆分组织 RAG 主链，并把关键选择放进可验证的工程约束中：语料与索引本地优先；ACL 在 TopK 前生效；Agentic 行为限制为 DIRECT / DECOMPOSE 与最多一次二轮检索；EvidenceSnapshot、PromptSnapshot 与 CER 分别记录“检索到了什么、模型真正看到了什么、一次执行实际发生了什么”。评测、审计和成本报告均从冻结执行事实派生，避免重新拼装上下文造成口径漂移。
-
-完整设计逻辑、替代方案与重新评估条件见 [系统设计与技术选型](docs/system-design.md)。
-
-## 模型选型与部署
-
-项目依据多源评测与工程指标按角色选型。项目从本地 Qwen / Ollama 起步，经过本地推理、固定题集、Judge 替换、RAGAS 兼容性、延迟与成本对比后，最终将角色拆分为：本地 BGE 负责 Embedding，GPT-4o-mini 负责默认答案生成，DeepSeek Flash 负责在线 sufficiency judgment；公开默认关闭 fallback，以保持模型身份、失败原因和成本可解释。
-
-完整实验过程、模型横评、API / 本地部署权衡及重新选型条件见 [模型选型与推理部署演进](docs/model-selection.md)。
-
 ## Quickstart
 
 ### 1. 安装
@@ -138,6 +126,18 @@ streamlit run src/agentic_rag/ui/streamlit_app.py
 ```
 
 完整启动、验证与停止方式见 [部署说明](docs/deployment-notes.md)。
+
+## 系统设计
+
+项目通过清晰的模块拆分组织 RAG 主链，并把关键选择放进可验证的工程约束中：语料与索引本地优先；ACL 在 TopK 前生效；Agentic 行为限制为 DIRECT / DECOMPOSE 与最多一次二轮检索；EvidenceSnapshot、PromptSnapshot 与 CER 分别记录“检索到了什么、模型真正看到了什么、一次执行实际发生了什么”。评测、审计和成本报告均从冻结执行事实派生，避免重新拼装上下文造成口径漂移。
+
+完整设计逻辑、替代方案与重新评估条件见 [系统设计与技术选型](docs/system-design.md)。
+
+## 模型选型与部署
+
+项目依据多源评测与工程指标按角色选型。项目从本地 Qwen / Ollama 起步，经过本地推理、固定题集、Judge 替换、RAGAS 兼容性、延迟与成本对比后，最终将角色拆分为：本地 BGE 负责 Embedding，GPT-4o-mini 负责默认答案生成，DeepSeek Flash 负责在线 sufficiency judgment；公开默认关闭 fallback，以保持模型身份、失败原因和成本可解释。
+
+完整实验过程、模型横评、API / 本地部署权衡及重新选型条件见 [模型选型与推理部署演进](docs/model-selection.md)。
 
 ## 评测摘要
 

@@ -127,19 +127,6 @@ streamlit run src/agentic_rag/ui/streamlit_app.py
 
 See [Deployment Notes](docs/en/deployment-notes.md) for complete startup, validation, and shutdown instructions.
 
-## System Design
-
-The project uses clear modular boundaries across the RAG pipeline and places key choices behind verifiable engineering constraints. Corpus data and indexing remain local-first; ACL filtering happens before TopK; Agentic behavior is bounded to DIRECT / DECOMPOSE plus at most one second retrieval round; and EvidenceSnapshot, PromptSnapshot, and CER separately record what was retrieved, what the model actually saw, and what happened during one execution. Evaluation, audit, and cost reports derive from frozen execution facts instead of reconstructing context later.
-
-See [System Design and Technology Choices](docs/en/system-design.md) for the full design rationale, alternatives, and re-evaluation conditions.
-
-## Model Selection and Deployment
-
-Models are selected by role using multi-source evaluation and engineering metrics. The project started with local Qwen / Ollama, then compared local inference, fixed evaluation sets, judge replacements, RAGAS compatibility, latency, and cost before converging on the current split: local BGE for embeddings, GPT-4o-mini as the default answer generator, and DeepSeek Flash for online sufficiency judgment. Public fallback is disabled so model identity, failure causes, and cost remain explicit.
-
-See [Model Selection and Inference Deployment Evolution](docs/en/model-selection.md) for the full experiments, model comparisons, API-versus-local deployment trade-offs, and re-selection criteria.
-
-
 ## Evaluation Summary
 
 The frozen project-specific in-domain regression set contains 30 questions. Both profiles use the same corpus, index, and Hybrid RRF retrieval configuration.
@@ -165,6 +152,12 @@ RAGAS on the 27 questions shared by both profiles:
 In the direct Dense-only → Hybrid RRF retrieval probe, manually confirmed CORE Hit@5 improves from 14/27 to 20/27. This is the primary evidence supporting the public default Retriever change. B2 is a `derived_in_domain_regression` set intended for in-domain regression, evidence-chain validation, and paired profile comparison. It does not represent held-out generalization or real-world business accuracy.
 
 See the [Evaluation Report](docs/en/evaluation-report.md) for the full conclusions and [`artifacts/evaluation/`](artifacts/evaluation/README.md) for per-question and workflow reports.
+
+## Design and Model Decisions
+
+- **System design**: Authorization control, Agentic boundaries, evidence lineage, evaluation, and cost accounting are organized into checkable engineering contracts. See [System Design and Technology Choices](docs/en/system-design.md) for the full trade-offs.
+
+- **Model and deployment**: Candidate models are shortlisted through model sources, benchmark reading, and decision cards, then validated by role across Generator / Judge / Evaluator. The default chain is finalized by jointly considering quality, latency, tokens, cost, data boundaries, and fallback policy. See [Model Selection and Inference Deployment Evolution](docs/en/model-selection.md) for the full process.
 
 ## Security, Audit, and Cost
 

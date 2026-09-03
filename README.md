@@ -127,18 +127,6 @@ streamlit run src/agentic_rag/ui/streamlit_app.py
 
 完整启动、验证与停止方式见 [部署说明](docs/deployment-notes.md)。
 
-## 系统设计
-
-项目通过清晰的模块拆分组织 RAG 主链，并把关键选择放进可验证的工程约束中：语料与索引本地优先；ACL 在 TopK 前生效；Agentic 行为限制为 DIRECT / DECOMPOSE 与最多一次二轮检索；EvidenceSnapshot、PromptSnapshot 与 CER 分别记录“检索到了什么、模型真正看到了什么、一次执行实际发生了什么”。评测、审计和成本报告均从冻结执行事实派生，避免重新拼装上下文造成口径漂移。
-
-完整设计逻辑、替代方案与重新评估条件见 [系统设计与技术选型](docs/system-design.md)。
-
-## 模型选型与部署
-
-项目依据多源评测与工程指标按角色选型。项目从本地 Qwen / Ollama 起步，经过本地推理、固定题集、Judge 替换、RAGAS 兼容性、延迟与成本对比后，最终将角色拆分为：本地 BGE 负责 Embedding，GPT-4o-mini 负责默认答案生成，DeepSeek Flash 负责在线 sufficiency judgment；公开默认关闭 fallback，以保持模型身份、失败原因和成本可解释。
-
-完整实验过程、模型横评、API / 本地部署权衡及重新选型条件见 [模型选型与推理部署演进](docs/model-selection.md)。
-
 ## 评测摘要
 
 冻结项目专用同域回归评测集包含 30 题。两套 profile 使用相同语料、索引和 Hybrid RRF 检索配置。
@@ -164,6 +152,12 @@ RAGAS 共同 27 题：
 Dense-only → Hybrid RRF 的直接检索 probe 中，人工确认的 CORE Hit@5 从 14/27 提升到 20/27；该结果是公开默认 Retriever 替换的主要依据。B2 属于 `derived_in_domain_regression`，用于同域回归、证据链验证与 profile 配对比较，不代表 held-out 泛化能力或真实业务准确率。
 
 完整结论见 [评测报告](docs/evaluation-report.md)，逐题与工作流报告见 [`artifacts/evaluation/`](artifacts/evaluation/README.md)。
+
+## 设计与选型
+
+- **系统设计**：将权限控制、Agentic 边界、证据链、评测与成本核算统一成可检查的工程合同；完整取舍见 [系统设计与技术选型](docs/system-design.md)。
+
+- **模型与部署**：从模型信息源、benchmark 读法和决策卡建立候选短名单，按 Generator / Judge / Evaluator 分角色验证模型，综合质量、延迟、Token、成本、数据边界与 fallback 策略收束默认链路；完整过程见 [模型选型与推理部署演进](docs/model-selection.md)。
 
 ## 安全、审计与成本
 

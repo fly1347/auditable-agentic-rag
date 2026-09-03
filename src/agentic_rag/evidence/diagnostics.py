@@ -248,13 +248,16 @@ def summarize_source_coverage(items: List[EvidenceItem]) -> Dict[str, Any]:
 
 
 def summarize_scores(items: List[EvidenceItem]) -> Dict[str, Any]:
-    """作用：统计 vector_score / rerank_score 的最小摘要，不编造缺失分数。"""
+    """作用：按真实分数语义统计 vector / RRF / rerank 摘要，不编造缺失分数。"""
     vector_scores = _safe_float_values(item.vector_score for item in items)
+    rrf_scores = _safe_float_values(item.rrf_score for item in items)
     rerank_scores = _safe_float_values(item.rerank_score for item in items)
 
     summary: Dict[str, Any] = {
         "vector_score_count": len(vector_scores),
+        "rrf_score_count": len(rrf_scores),
         "rerank_score_count": len(rerank_scores),
+        "has_rrf_scores": bool(rrf_scores),
         "has_rerank_scores": bool(rerank_scores),
     }
 
@@ -264,6 +267,15 @@ def summarize_scores(items: List[EvidenceItem]) -> Dict[str, Any]:
                 "vector_score_min": min(vector_scores),
                 "vector_score_max": max(vector_scores),
                 "vector_score_mean": mean(vector_scores),
+            }
+        )
+
+    if rrf_scores:
+        summary.update(
+            {
+                "rrf_score_min": min(rrf_scores),
+                "rrf_score_max": max(rrf_scores),
+                "rrf_score_mean": mean(rrf_scores),
             }
         )
 

@@ -3,7 +3,7 @@
 1）实现 D-lite 的 Evidence Sufficiency Check（证据充分性判断）。
 2）输入 query + retrieved_chunks，输出 SUFFICIENT / INSUFFICIENT。
 3）judge backend 使用 DeepSeek API。
-4）保持最小实现：单次 LLM judge,不接 pipeline，不做 retry / re-retrieve。
+4）binary judge 保持单次调用；structured judge 遇到非法 JSON 时仅做一次格式重试，不做开放式 retry。
 
 整体结构：
 1）读取环境变量中的 DeepSeek 配置。
@@ -48,6 +48,15 @@ class SufficiencyJudgeUnavailable(SufficiencyJudgeError):
 
 class SufficiencyJudgeTimeout(SufficiencyJudgeError):
     """DeepSeek judge 调用超时。"""
+
+
+class SufficiencyJudgeOutputParseError(SufficiencyJudgeError):
+    """作用：structured judge 已返回响应，但输出无法解析为合法 JSON。"""
+
+    def __init__(self, message: str, *, raw_output: str = "", model_calls: Optional[List[Any]] = None):
+        super().__init__(message)
+        self.raw_output = str(raw_output or "")
+        self.model_calls = list(model_calls or [])
 
 # ======== 可调参数（先写死，后续再抽 config） ========
 _MAX_CHUNKS: int = 5  # 最多取前几个 chunk。
@@ -406,8 +415,7 @@ def _format_evidence_packet_for_prompt(packet: EvidencePacket) -> str:
             "section_path": getattr(item, "section_path", None),
             "visibility": getattr(item, "visibility", None),
             "retrieval_query": getattr(item, "retrieval_query", None),
-            "vector_score": getattr(item, "vector_score", None),
-            "rerank_score": getattr(item, "rerank_score", None),
+            # 检索分数属于检索/审计信号，不参与证据充分性判断，避免 judge 被分数尺度误导。
             "known_flags": {
                 "is_expected_source": getattr(item, "is_expected_source", None),
                 "is_expected_section": getattr(item, "is_expected_section", None),
@@ -421,7 +429,7 @@ def _format_evidence_packet_for_prompt(packet: EvidencePacket) -> str:
     diagnostics = {
         "source_coverage": dict(getattr(packet, "source_coverage", {}) or {}),
         "answer_bearing_summary": dict(getattr(packet, "answer_bearing_summary", {}) or {}),
-        "score_summary": dict(getattr(packet, "score_summary", {}) or {}),
+        # score_summary 继续保留在 EvidencePacket/CER 中用于审计，但不进入 judge prompt。
         "compression_policy": getattr(packet, "compression_policy", None),
         "known_gaps": list(getattr(packet, "known_gaps", []) or []),
     }
@@ -483,26 +491,41 @@ JSON schema:
 
 
 def _extract_json_object(text: str) -> Dict[str, Any]:
-    """作用：从 judge 输出中提取 JSON object。"""
+    """从 structured judge 输出中提取 JSON；格式错误显式报错，不能伪装成普通 INSUFFICIENT。"""
     raw = str(text or "").strip()
     if raw.startswith("```"):
         raw = raw.strip("`").strip()
         if raw.lower().startswith("json"):
             raw = raw[4:].strip()
 
-    try:
-        parsed = json.loads(raw)
-        return dict(parsed) if isinstance(parsed, dict) else {}
-    except Exception:
-        pass
+    candidates: List[str] = []
+    if raw:
+        candidates.append(raw)
 
     start = raw.find("{")
     end = raw.rfind("}")
     if start >= 0 and end > start:
-        parsed = json.loads(raw[start : end + 1])
-        return dict(parsed) if isinstance(parsed, dict) else {}
+        sliced = raw[start : end + 1]
+        if sliced not in candidates:
+            candidates.append(sliced)
 
-    return {}
+    last_error: Optional[Exception] = None
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            continue
+        if isinstance(parsed, dict):
+            return dict(parsed)
+        last_error = TypeError(f"structured judge JSON must be an object, got {type(parsed).__name__}")
+
+    detail = str(last_error or "no JSON object found")
+    preview = raw[:240].replace("\n", " ")
+    raise SufficiencyJudgeOutputParseError(
+        f"structured sufficiency judge 输出 JSON 解析失败: {detail}; raw={preview!r}",
+        raw_output=raw,
+    )
 
 
 def _normalize_structured_sufficiency(data: Dict[str, Any], *, raw_text: str = "") -> SufficiencyResult:
@@ -692,25 +715,56 @@ def judge_sufficiency_with_evidence_packet(
         visibility = getattr(item, "visibility", None)
         if visibility not in (None, ""):
             packet_visibilities.append(str(visibility))
-    raw_text, identity, call = _call_structured_judge(
-        prompt,
-        visibilities=tuple(packet_visibilities),
-        profile=profile,
-    )
-    parsed = _extract_json_object(raw_text)
-    result = _normalize_structured_sufficiency(parsed, raw_text=raw_text)
-    result.model_identity = identity
+    failed_parse_calls: List[ModelCallRecord] = []
+    last_parse_error: Optional[SufficiencyJudgeOutputParseError] = None
 
-    total_ms = float((time.time() - t0) * 1000.0)
-    if call.latency_ms is None:
-        call.latency_ms = total_ms
+    for attempt in (1, 2):
+        raw_text, identity, call = _call_structured_judge(
+            prompt,
+            visibilities=tuple(packet_visibilities),
+            profile=profile,
+        )
+        try:
+            parsed = _extract_json_object(raw_text)
+        except SufficiencyJudgeOutputParseError as exc:
+            # HTTP 调用本身成功，但模型输出格式不合法：保留真实调用记录，并只针对格式错误重试一次。
+            call.error_type = "structured_output_parse_error"
+            setattr(call, "error_message", str(exc))
+            failed_parse_calls.append(call)
+            last_parse_error = exc
+            if attempt == 1:
+                print(
+                    "[sufficiency][structured][WARN] invalid JSON output; retrying once",
+                    flush=True,
+                )
+                continue
+            exc.model_calls = list(failed_parse_calls)
+            raise exc
 
-    print(
-        "[sufficiency][structured] "
-        f"provider={identity.provider} model={identity.configured_model} "
-        f"resolved_model={identity.resolved_model} total_ms={total_ms:.1f} "
-        f"verdict={result.verdict} confidence={result.confidence}",
-        flush=True,
-    )
+        result = _normalize_structured_sufficiency(parsed, raw_text=raw_text)
+        result.model_identity = identity
+        # 不改变公开返回接口；把前一次失败调用挂在最终 call 上，供 query_pipeline 展开进 CER。
+        if failed_parse_calls:
+            setattr(call, "retry_model_calls", list(failed_parse_calls))
+            setattr(call, "structured_output_retry_recovered", True)
 
-    return result, total_ms, call
+        total_ms = float((time.time() - t0) * 1000.0)
+        if call.latency_ms is None:
+            call.latency_ms = total_ms
+
+        print(
+            "[sufficiency][structured] "
+            f"provider={identity.provider} model={identity.configured_model} "
+            f"resolved_model={identity.resolved_model} total_ms={total_ms:.1f} "
+            f"verdict={result.verdict} confidence={result.confidence} "
+            f"attempts={1 + len(failed_parse_calls)}",
+            flush=True,
+        )
+
+        return result, total_ms, call
+
+    # 理论不可达；保留显式错误，避免未来改循环后静默回落。
+    if last_parse_error is not None:
+        last_parse_error.model_calls = list(failed_parse_calls)
+        raise last_parse_error
+    raise SufficiencyJudgeOutputParseError("structured sufficiency judge 未产生可解析输出")

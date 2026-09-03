@@ -23,7 +23,7 @@ def _snapshot_id(prefix: str, payload: Mapping[str, Any]) -> str:
     return f"{prefix}_{digest[:20]}"
 
 
-def _chunk_payload(chunk: Chunk, score: float | None, rank: int) -> dict[str, Any]:
+def _chunk_payload(chunk: Chunk, score: float | None, rank: int, score_type: str) -> dict[str, Any]:
     metadata = dict(chunk.metadata or {})
     acl = dict(metadata.get("acl") or {}) if isinstance(metadata.get("acl"), dict) else {}
     return {
@@ -33,6 +33,7 @@ def _chunk_payload(chunk: Chunk, score: float | None, rank: int) -> dict[str, An
         "offset_start": int(chunk.offset_start),
         "offset_end": int(chunk.offset_end),
         "score": float(score) if score is not None else None,
+        "score_type": str(score_type),
         "text": str(chunk.text),
         "acl": {
             "visibility": acl.get("visibility"),
@@ -49,6 +50,7 @@ def build_evidence_snapshot(result: RetrievalResult) -> dict[str, Any]:
             chunk,
             result.scores[index - 1] if index - 1 < len(result.scores) else None,
             index,
+            str(getattr(result, "score_type", "vector_similarity")),
         )
         for index, chunk in enumerate(result.chunks, start=1)
     ]

@@ -96,6 +96,18 @@ Phase G 从空 staging 按白名单组装公开仓库：
 - 重写 README、架构、评测、安全、部署与限制文档；
 - 通过 clean install、tests、API/UI、Docker 和 release scan 后建立全新 Git 历史。
 
+## 2026-09 维护更新
+
+项目发布后按维护口径完成一次 Retriever 与 sufficiency 合同修正，不新增阶段：
+
+- 公开默认 Retriever 从 Dense-only 固定为 `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`，baseline / orchestrated / API / eval 共用同一实现；
+- `vector_score`、`rrf_score`、`rerank_score` 分离，Hybrid 内部 Dense/BM25 events 与 merge trace 保留到 CER，检索分数不进入 structured sufficiency prompt；
+- structured sufficiency malformed JSON 只重试一次，第二次失败显式记录 `SufficiencyJudgeOutputParseError`，不伪装为普通证据不足；
+- 增加 Hybrid RRF、score semantics、sufficiency prompt / parse retry 等公开 contract tests；
+- 基于同一冻结索引完成 Dense / Hybrid 对照与新一轮双 profile 评测，Hybrid CORE Hit@5 从 14/27 提升到 20/27，并保留 q28 / q30 等已知边界。
+
+该更新属于已发布项目的维护与证据刷新，不改变 `A → … → G` 的历史阶段线。
+
 ## 方法沉淀
 
 项目形成了几条可复用原则：

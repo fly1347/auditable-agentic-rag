@@ -128,6 +128,7 @@ class EvidenceItem:
     visibility: Optional[str] = None
 
     vector_score: Optional[float] = None
+    rrf_score: Optional[float] = None
     rerank_score: Optional[float] = None
     retrieval_round: Optional[int] = None
     retrieval_query: Optional[str] = None

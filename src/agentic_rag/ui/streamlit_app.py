@@ -1011,6 +1011,7 @@ def render_evidence_packet_debug(payload: Dict[str, Any]) -> None:
                         "is_answer_bearing": item.get("is_answer_bearing", ""),
                         "rank_after_rerank": item.get("rank_after_rerank", ""),
                         "vector_score": item.get("vector_score", ""),
+                        "rrf_score": item.get("rrf_score", ""),
                         "rerank_score": item.get("rerank_score", ""),
                     }
                 )

@@ -41,12 +41,14 @@ class RuntimeContainer:
                 factory = self._retriever_factory
                 if factory is None:
                     from agentic_rag.embed.embeddings import EmbeddingConfig
+                    from agentic_rag.retrieve.hybrid_rrf import HybridRRFRetriever
                     from agentic_rag.retrieve.retriever import Retriever
                     from agentic_rag.store.vector_store import VectorStoreConfig
 
                     def factory() -> Any:
+                        """构造公开默认 Hybrid RRF：Dense Top10 + BM25 Top10 -> RRF(k=60) -> final TopK。"""
                         pointer_path = Path(self.config.index.manifest_path).parent / "current.json"
-                        return Retriever(
+                        dense = Retriever(
                             embed_cfg=EmbeddingConfig(),
                             store_cfg=VectorStoreConfig(
                                 persist_dir=resolve_vector_store_dir(
@@ -54,6 +56,12 @@ class RuntimeContainer:
                                     pointer_path=pointer_path,
                                 ).as_posix()
                             ),
+                        )
+                        return HybridRRFRetriever(
+                            dense,
+                            dense_candidate_topk=10,
+                            bm25_candidate_topk=10,
+                            rrf_k=60,
                         )
 
                 self._retriever = factory()

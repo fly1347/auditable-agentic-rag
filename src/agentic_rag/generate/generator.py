@@ -250,16 +250,21 @@ class RAGGenerator:  # RAG 生成器。  # noqa: E501
         limit: int = min(len(chunks), int(self._cfg.max_chunks_in_prompt))  # prompt 实际 chunk 数。  # noqa: E501
         rerank_applied: bool = bool(getattr(rr, "rerank_applied", False))  # 是否已经 rerank。  # noqa: E501
         rerank_scores: Sequence[float] = list(getattr(rr, "rerank_scores", []) or [])  # rerank scores。  # noqa: E501
+        score_type: str = str(getattr(rr, "score_type", "vector_similarity") or "vector_similarity")  # 当前最终排序分数语义。  # noqa: E501
 
         chunks_in_prompt: List[Dict[str, Any]] = []  # 初始化输出。  # noqa: E501
         for i in range(limit):  # 只遍历真正进入 prompt 的 chunks。  # noqa: E501
             chunk: Chunk = chunks[i]  # 当前 chunk。  # noqa: E501
             score_value: Optional[float] = float(scores[i]) if i < len(scores) else None  # 当前 score。  # noqa: E501
             rerank_score: Optional[float] = None  # 初始化 rerank_score。  # noqa: E501
-            vector_score: Optional[float] = score_value  # 默认 score 是 vector score。  # noqa: E501
+            vector_score: Optional[float] = None  # 仅 vector_similarity 路径填写。  # noqa: E501
+            rrf_score: Optional[float] = None  # 仅 RRF 路径填写。  # noqa: E501
             if rerank_applied:  # rerank 后 rr.scores 通常已是 rerank score。  # noqa: E501
                 rerank_score = float(rerank_scores[i]) if i < len(rerank_scores) else score_value  # 读取 rerank score。  # noqa: E501
-                vector_score = None  # 原始 vector score 当前没有稳定保留，不伪造。  # noqa: E501
+            elif score_type == "rrf":  # RRF 融合后的 score 不能伪装成 vector similarity。  # noqa: E501
+                rrf_score = score_value  # 记录真实 RRF score。  # noqa: E501
+            elif score_type == "vector_similarity":  # Dense 直出时才记录 vector score。  # noqa: E501
+                vector_score = score_value  # 记录 cosine/vector similarity。  # noqa: E501
             prompt_text: str = self._chunk_text_for_prompt(chunk)  # prompt 中实际文本。  # noqa: E501
             metadata: Dict[str, Any] = dict(getattr(chunk, "metadata", {}) or {})  # 读取 metadata。  # noqa: E501
             acl: Dict[str, Any] = dict(metadata.get("acl") or {}) if isinstance(metadata.get("acl"), dict) else {}  # 读取 ACL。  # noqa: E501
@@ -277,7 +282,9 @@ class RAGGenerator:  # RAG 生成器。  # noqa: E501
                         chunk, ["section_path", "heading_path", "headers", "section", "title"]
                     ),  # section_path 结束。  # noqa: E501
                     "rank": int(i + 1),  # prompt 内 rank，从 1 开始。  # noqa: E501
-                    "vector_score": vector_score,  # vector_score；rerank 后不伪造。  # noqa: E501
+                    "score_type": score_type,  # 最终排序分数语义。  # noqa: E501
+                    "vector_score": vector_score,  # Dense vector score。  # noqa: E501
+                    "rrf_score": rrf_score,  # RRF 融合分数。  # noqa: E501
                     "rerank_score": rerank_score,  # rerank_score。  # noqa: E501
                     "char_len": int(len(prompt_text)),  # 实际送入 prompt 的文本长度。  # noqa: E501
                     "acl": {  # prompt chunk 的 ACL 摘要。  # noqa: E501

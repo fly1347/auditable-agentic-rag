@@ -117,7 +117,14 @@ def _report_record(record: CanonicalExecutionRecord) -> CanonicalExecutionRecord
             for raw_candidate in _list(item.get("candidates")):
                 candidate = _dict(raw_candidate)
                 candidate.setdefault("query_role", query_role)
-                candidate.setdefault("vector_score", candidate.get("score", NOT_OBSERVED))
+                score_type = str(candidate.get("score_type") or "vector_similarity")
+                score = candidate.get("score", NOT_OBSERVED)
+                if score_type == "vector_similarity":
+                    candidate.setdefault("vector_score", score)
+                elif score_type == "rrf":
+                    candidate.setdefault("rrf_score", score)
+                elif score_type == "bm25":
+                    candidate.setdefault("bm25_score", score)
                 candidate.setdefault("rerank_score", NOT_OBSERVED)
                 candidates.append(candidate)
             item["candidates"] = candidates
@@ -143,7 +150,15 @@ def _report_record(record: CanonicalExecutionRecord) -> CanonicalExecutionRecord
     for raw in _list(clone.prompt.get("visible_evidence")):
         item = _dict(raw)
         selected = selected_by_chunk.get(str(item.get("chunk_id")), {})
-        item.setdefault("vector_score", selected.get("score", selected.get("vector_score", NOT_OBSERVED)))
+        score_type = str(selected.get("score_type") or "vector_similarity")
+        score = selected.get("score", NOT_OBSERVED)
+        item.setdefault("score_type", score_type)
+        if score_type == "vector_similarity":
+            item.setdefault("vector_score", selected.get("vector_score", score))
+        elif score_type == "rrf":
+            item.setdefault("rrf_score", selected.get("rrf_score", score))
+        elif score_type == "bm25":
+            item.setdefault("bm25_score", selected.get("bm25_score", score))
         item.setdefault("rerank_score", selected.get("rerank_score", NOT_OBSERVED))
         item.setdefault("text_preview", str(item.get("text") or "")[:240])
         prompt_items.append(item)
@@ -293,8 +308,8 @@ def _summary_markdown(
 
 def _candidate_table(candidates: Sequence[Any]) -> list[str]:
     lines = [
-        "| rank | query_role | chunk_id | source_id | offset | vector_score | rerank_score | selected |",
-        "| --: | :-- | :-- | :-- | :-- | --: | --: | :-- |",
+        "| rank | query_role | chunk_id | source_id | offset | score_type | score | selected |",
+        "| --: | :-- | :-- | :-- | :-- | :-- | --: | :-- |",
     ]
     if not candidates:
         lines.append("| — | not_observed | not_observed | not_observed | not_observed | not_observed | not_observed | false |")
@@ -303,14 +318,14 @@ def _candidate_table(candidates: Sequence[Any]) -> list[str]:
         item = _dict(raw)
         offset = f"{_display(item.get('offset_start', item.get('source_offset_start')))}-{_display(item.get('offset_end', item.get('source_offset_end')))}"
         lines.append(
-            "| {rank} | {role} | {chunk} | {source} | {offset} | {vector} | {rerank} | {selected} |".format(
+            "| {rank} | {role} | {chunk} | {source} | {offset} | {score_type} | {score} | {selected} |".format(
                 rank=_display(item.get("rank")),
                 role=_display(item.get("query_role")),
                 chunk=_display(item.get("chunk_id")),
                 source=_display(item.get("source_id")),
                 offset=offset,
-                vector=_display(item.get("vector_score")),
-                rerank=_display(item.get("rerank_score")),
+                score_type=_display(item.get("score_type")),
+                score=_display(item.get("score")),
                 selected=_display(item.get("selected")),
             )
         )
@@ -1132,18 +1147,18 @@ def _diagnostic_chunk_ref(raw: Any) -> str:
 
 def _workflow_candidate_table(candidates: Sequence[Any]) -> list[str]:
     lines = [
-        "| rank | chunk | vector_score |",
-        "| --: | :-- | --: |",
+        "| rank | chunk | score_type | score |",
+        "| --: | :-- | :-- | --: |",
     ]
     if not candidates:
-        lines.append("| — | not_observed | not_observed |")
+        lines.append("| — | not_observed | not_observed | not_observed |")
         return lines
     for raw in candidates:
         item = _dict(raw)
-        score = _number(item.get("vector_score", item.get("score")))
+        score = _number(item.get("score"))
         lines.append(
             f"| {_display(item.get('rank'))} | {_diagnostic_chunk_ref(item)} | "
-            f"{f'{score:.4f}' if score is not None else NOT_OBSERVED} |"
+            f"{_display(item.get('score_type'))} | {f'{score:.4f}' if score is not None else NOT_OBSERVED} |"
         )
     return lines
 
@@ -1330,7 +1345,7 @@ def _retrieval_workflow_markdown(
         [
             "## 口径说明",
             "",
-            "- retrieval event 表中的 `vector_score` 是各 original/subquery/rewrite 查询自己的向量相似度。",
+            "- retrieval event 表按 `score_type + score` 展示真实分数语义：Dense 为 `vector_similarity`，BM25 为 `bm25`；RRF 融合分数在 Merge / RRF 表单独展示。",
             "- `Merge / RRF` 仅在实际发生多 query / 多轮 merge 时展示；contributions 展开到 query role、原 rank、raw score 与 RRF contribution。",
             "- `selected_score` 是最终 `evidence.selected` 中记录的排序分数；RRF 路径通常为 merge score，DIRECT 单查询通常为 vector score。",
             "- `prompt_marker` 显示该 final evidence 是否真正进入 prompt；`cited=true` 表示最终回答实际引用了该 chunk。",

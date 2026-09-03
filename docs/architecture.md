@@ -49,7 +49,7 @@ CLI、FastAPI、Streamlit UI 和评测入口最终进入 `RagApplicationService`
 | baseline | binary | 默认交互、演示、批量回归、成本敏感场景 |
 | orchestrated | structured | 严格证据、高风险问答、审计和故障归因 |
 
-两个 profile 共用 route、retrieval、ACL、RRF、evidence、prompt、generation、citation，以及证据不足后的 rewrite、一次二轮检索和再次判断。差异集中在 sufficiency 合同：baseline 使用 binary 判断，orchestrated 基于 EvidencePacket 生成结构化 SufficiencyResult。
+两个 profile 共用 route、Hybrid retrieval、ACL、RRF、evidence、prompt、generation、citation，以及证据不足后的 rewrite、一次二轮检索和再次判断。单次 query 的默认 Retriever 为 `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`。差异集中在 sufficiency 合同：baseline 使用 binary 判断，orchestrated 基于 EvidencePacket 生成结构化 SufficiencyResult。
 
 ### 横切轴
 
@@ -67,10 +67,10 @@ CLI、FastAPI、Streamlit UI 和评测入口最终进入 `RagApplicationService`
        │
        ▼
     [规则路由]
-      ├─ DIRECT ─────> [ACL 可访问候选 → TopK] ─────────────────┐
-      └─ DECOMPOSE ──> [各查询 ACL 可访问候选 → TopK → RRF] ──┤
-                                                                 ▼
-                                                       [可选 Rerank]
+      ├─ DIRECT ─────> [单 query Hybrid: Dense Top10 + BM25 Top10 → RRF Top5] ──┐
+      └─ DECOMPOSE ──> [原问题 + 子问题分别 Hybrid → query-level RRF] ─────────┤
+                                                                                 ▼
+                                                                       [可选 Rerank]
                                                                  │
                                                                  ▼
                                                       [ACL 二次校验]
@@ -103,7 +103,7 @@ CLI、FastAPI、Streamlit UI 和评测入口最终进入 `RagApplicationService`
                               └─> [CER / Response]
 ```
 
-DIRECT 检索原问题；DECOMPOSE 同时保留原问题和子问题的 retrieval event，并使用 RRF 融合。二轮检索不会覆盖一轮证据，而是形成 union 并保留 lineage。
+DIRECT 对原问题执行一次 Hybrid retrieval；DECOMPOSE 对原问题和子问题分别执行 Hybrid retrieval，再用 query-level RRF 融合，并保留每一路 retrieval event。每次 Hybrid 内部的 Dense/BM25 events 与 RRF merge trace 继续保留；二轮检索同样使用 Hybrid，不会覆盖一轮证据，而是形成 union 并保留 lineage。
 
 系统分别记录：
 
@@ -112,7 +112,9 @@ retrieved → merged/reranked → evidence selected
 → prompt visible → cited
 ```
 
-这些集合不能互相代替。引用只能指向模型实际看见的 Prompt 证据。
+这些集合不能互相代替。Dense cosine、RRF 与 rerank 分数分别记录为 `vector_score`、`rrf_score`、`rerank_score`，不会互相冒充；retrieval score / `score_summary` 保留用于排序与审计，但不发送给 structured sufficiency judge。引用只能指向模型实际看见的 Prompt 证据。
+
+structured sufficiency 输出若出现 malformed JSON，只允许一次真实重试；第二次仍解析失败时显式记录 `SufficiencyJudgeOutputParseError` 并 fail-close，两次 provider attempt 都进入 CER。
 
 ## 4. 语料与索引
 

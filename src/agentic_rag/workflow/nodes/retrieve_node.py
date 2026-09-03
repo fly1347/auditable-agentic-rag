@@ -19,6 +19,7 @@ from __future__ import annotations
 import time
 from typing import Any, List, Optional
 
+from agentic_rag.retrieve.hybrid_rrf import HybridRRFRetriever
 from agentic_rag.retrieve.retriever import Retriever
 from agentic_rag.retrieve.fusion import FusionInput, rrf_fuse
 from agentic_rag.types import Chunk, RetrievalResult
@@ -202,7 +203,7 @@ def run_retrieve_node(
         )
         return result
 
-    actual_retriever = retriever or Retriever()
+    actual_retriever = retriever or HybridRRFRetriever(Retriever())
     retrieval_queries = [str(state.query)] if route == WorkflowRoute.DIRECT.value else _get_retrieval_queries(state)
 
     per_query_results: List[RetrievalResult] = []

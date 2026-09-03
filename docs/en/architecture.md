@@ -49,7 +49,7 @@ There are only two online execution profiles:
 | baseline | binary | Default interaction, demos, batch regression, cost-sensitive scenarios |
 | orchestrated | structured | Strict evidence control, high-risk QA, audit, and failure diagnosis |
 
-The two profiles share route, retrieval, ACL, RRF, evidence, prompt, generation, citation, and the bounded recovery path of rewrite, one second retrieval round, and a second judgment after insufficient evidence. Their difference is concentrated in the sufficiency contract: `baseline` uses a binary judgment, while `orchestrated` produces a structured SufficiencyResult over an EvidencePacket.
+The two profiles share route, Hybrid retrieval, ACL, RRF, evidence, prompt, generation, citation, and the bounded recovery path of rewrite, one second retrieval round, and a second judgment after insufficient evidence. The default Retriever for one query is `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`. Their difference is concentrated in the sufficiency contract: `baseline` uses a binary judgment, while `orchestrated` produces a structured SufficiencyResult over an EvidencePacket.
 
 ### Cross-Cutting Axis
 
@@ -67,10 +67,10 @@ Identity, source authorization, data egress, budget, logging, metrics, and CER s
        │
        ▼
     [Rule-based Routing]
-      ├─ DIRECT ─────> [ACL-eligible candidates → TopK] ─────────────────┐
-      └─ DECOMPOSE ──> [ACL-eligible candidates per query → TopK → RRF] ┤
-                                                                       ▼
-                                                            [Optional Rerank]
+      ├─ DIRECT ─────> [Per-query Hybrid: Dense Top10 + BM25 Top10 → RRF Top5] ──┐
+      └─ DECOMPOSE ──> [Original + subqueries each Hybrid → query-level RRF] ─────┤
+                                                                                        ▼
+                                                                             [Optional Rerank]
                                                                        │
                                                                        ▼
                                                                [ACL Recheck]
@@ -103,7 +103,7 @@ Identity, source authorization, data egress, budget, logging, metrics, and CER s
                               └─> [CER / Response]
 ```
 
-DIRECT retrieves with the original question. DECOMPOSE preserves retrieval events for both the original question and subqueries, then fuses them with RRF. Second-round retrieval does not overwrite first-round evidence; it creates a union while preserving lineage.
+DIRECT runs one Hybrid retrieval for the original question. DECOMPOSE runs Hybrid retrieval independently for the original question and subqueries, then applies query-level RRF while preserving every retrieval event. Dense/BM25 events and the internal Hybrid RRF merge trace remain visible; second-round retrieval uses the same Hybrid path and forms a union without overwriting first-round lineage.
 
 The system records these sets separately:
 
@@ -112,7 +112,9 @@ retrieved → merged/reranked → evidence selected
 → prompt visible → cited
 ```
 
-They are not interchangeable. Citations can only point to evidence the model actually saw in the prompt.
+They are not interchangeable. Dense cosine, RRF, and rerank scores are recorded separately as `vector_score`, `rrf_score`, and `rerank_score`; one score type is never presented as another. Retrieval scores / `score_summary` remain available for ranking and audit but are not sent to the structured sufficiency judge. Citations can only point to evidence the model actually saw in the prompt.
+
+If structured sufficiency returns malformed JSON, the system allows exactly one real retry. A second parse failure is recorded explicitly as `SufficiencyJudgeOutputParseError` and fails closed; both provider attempts remain in CER.
 
 ## 4. Corpus and Index
 

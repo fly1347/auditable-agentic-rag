@@ -27,6 +27,8 @@ ui = [
 local = [
     "sentence-transformers>=2.2",
     "transformers>=4.35",
+    "jieba>=0.42",
+    "rank-bm25>=0.2.2",
 ]
 loadtest = [
     "locust>=2.20",

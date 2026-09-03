@@ -65,7 +65,7 @@
 [DIRECT / DECOMPOSE]
        │
        ▼
-[ACL-eligible TopK] → [RRF] → [Optional Rerank] → [ACL Recheck]
+[ACL-eligible candidates] → [Dense Top10 + BM25 Top10] → [RRF(k=60) → Top5] → [Optional Rerank] → [ACL Recheck]
        │
        ▼
 [EvidenceSnapshot] → [Sufficiency Judge]
@@ -142,7 +142,9 @@ Splitter 是先理解 Markdown 结构，再用实际 Embedding tokenizer 执行�
 
 路由由确定性规则完成，不调用额外 LLM classifier。子问题生成失败时退回原问题检索，避免把一次规划失败扩散为整次请求失败。
 
-基础 retrieval 使用稠密向量 TopK，公开默认 `topk=5`。DECOMPOSE 和二轮检索的多路结果按 `chunk_id` 去重并使用 RRF 融合，从而保留不同查询视角，而不是让某一路分数尺度主导结果。
+单次 query 的公开默认 retrieval 为 `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`。Dense 与 BM25 都基于当前不可变索引中的同一批 chunk 和同一 source-level ACL 可见集合；RRF 只使用排名，不直接比较两种分数尺度。DECOMPOSE 和二轮检索仍会把多个 query / round 的结果按 `chunk_id` 去重后再做一层 RRF，从而同时保留词面召回、语义召回和不同查询视角。
+
+Dense cosine 原始值保持为 `vector_score`，RRF 融合值单独记录为 `rrf_score`，只有实际启用 reranker 时才写 `rerank_score`；RRF 分数不会伪装成向量相似度。Hybrid 内部 Dense / BM25 retrieval events 和 merge trace 也保留在 CER 中。检索分数用于排序与审计，但不发送给 structured sufficiency judge，避免 Judge 把不可跨口径比较的分数当作证据强度。
 
 CrossEncoder rerank 是可选能力，默认关闭；候选模型为 `BAAI/bge-reranker-base`。reranker 只能重排已经召回的候选，不能修复未进入候选池的核心证据，因此应先验证 recall，再判断是否值得增加模型加载、时延和资源占用。
 
@@ -155,9 +157,9 @@ CrossEncoder rerank 是可选能力，默认关闭；候选模型为 `BAAI/bge-r
 | baseline | binary sufficiency | 默认交互、较高覆盖、较低控制复杂度 |
 | orchestrated | structured EvidencePacket judgment | 更严格的证据解释、审计和拒答控制 |
 
-当 Judge 判定证据不足时，系统允许 query rewrite 和一次 R2。R2 使用改写后的查询执行 DIRECT retrieval，再与 R1 结果形成 union、RRF 融合并重新检查 ACL 和充分性。第二次仍不足则拒答；Judge 调用失败同样 fail-close。
+当 Judge 判定证据不足时，系统允许 query rewrite 和一次 R2。R2 使用改写后的查询再次执行同一 Hybrid retrieval，再与 R1 结果形成 union、RRF 融合并重新检查 ACL 和充分性。第二次仍不足则拒答；Judge 调用失败同样 fail-close。structured judge 若返回 malformed JSON，只重试一次；第二次仍无法解析时显式抛出 `SufficiencyJudgeOutputParseError`，不会伪装成普通 `INSUFFICIENT`，两次真实 provider attempt 都进入 CER。
 
-“最多一次”是刻意的边界：它让额外成本、时延和状态空间可预测，也防止近义改写无限循环。当前冻结评测中，系统已经能够发现部分证据缺口，但二轮 recovery 仍弱，说明后续重点应是候选召回与改写策略，而不是简单增加循环次数。
+“最多一次”是刻意的边界：它让额外成本、时延和状态空间可预测，也防止近义改写无限循环。当前 Hybrid 冻结评测中，q17、q27 已出现二轮成功恢复，q28、q30 仍未恢复；说明 bounded recovery 已真实生效，但稳定性仍不足，后续重点应是候选召回、缺口类型驱动的改写与 sufficiency 校准，而不是简单增加循环次数。
 
 ### 5.6 Prompt、生成与引用
 
@@ -226,7 +228,7 @@ CER 是执行事实源，Response、debug、audit、metrics、cost 和 evaluatio
 | :-- | :-- | :-- |
 | 本地 BGE + 本地索引 | 数据可控、易调试、低依赖 | 大规模 ANN、分布式扩展与在线增量更新 |
 | structure-first + token 硬预算 | 当前语料结构完整、Embedding 输入可验证 | 实现复杂度；任意超长结构仍可能拆分 |
-| 稠密 Top5、rerank 默认关闭 | 主链简单、资源与时延可控 | 复杂术语、多跳和弱语义候选的召回上限 |
+| Hybrid RRF（Dense Top10 + BM25 Top10 → Top5）、rerank 默认关闭 | 同时利用语义与词面召回，RRF 不依赖跨检索器分数标定 | BM25 构建/查询增加本地开销；RRF 仍可能奖励双路错误共识，不能替代语义 rerank |
 | 规则路由 + 固定 2 个子问题 | 可预测、可测试、额外调用有限 | 面对复杂任务时的规划自由度 |
 | 最多一次 R2 | 成本和状态空间有界 | 多轮自主搜索与更强恢复能力 |
 | baseline / orchestrated 双 profile | 在同一底座上观察覆盖、grounding 与成本取舍 | 不提供一个声称全面最优的单一模式 |
@@ -242,7 +244,7 @@ CER 是执行事实源，Response、debug、audit、metrics、cost 和 evaluatio
 - 语料规模或并发使 O(N) 扫描无法满足延迟目标：迁移到支持 metadata filter 的生产向量库；
 - 租户或监管要求物理隔离：按 tenant / 安全域拆分索引、密钥和生命周期；
 - 文档类型扩展到 PDF、Office、图片或扫描件：引入解析、OCR、版面恢复和质量门禁；
-- 核心证据持续无法进入候选池：先改进 query strategy、hybrid retrieval 和 candidate recall，再评估 rerank；
+- 核心证据持续无法进入候选池或 RRF 排名仍不理想：先改进 query expansion、candidate recall 和 fusion 诊断，再评估 rerank；
 - 二轮 recovery 经验证仍不足：引入基于缺口类型的 rewrite、multi-query 或受控工具检索，而不是直接放开无限循环；
 - Prompt 可能接收更长证据：完成 generator-tokenizer-aware 的硬预算、截断策略和回归测试；
 - API 需要多 worker 或高可用：将 JSONL 执行记录、审计和日志迁移到具备并发与持久性保证的存储；

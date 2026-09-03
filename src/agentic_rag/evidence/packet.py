@@ -65,6 +65,7 @@ def chunk_to_evidence_item(
     chunk: Chunk,
     *,
     vector_score: Optional[float] = None,
+    rrf_score: Optional[float] = None,
     rerank_score: Optional[float] = None,
     retrieval_round: Optional[int] = None,
     retrieval_query: Optional[str] = None,
@@ -93,6 +94,7 @@ def chunk_to_evidence_item(
         text_preview=text[: int(text_preview_chars)],
         visibility=str(acl.get("visibility")) if acl.get("visibility") not in (None, "") else None,
         vector_score=vector_score,
+        rrf_score=rrf_score,
         rerank_score=rerank_score,
         retrieval_round=retrieval_round,
         retrieval_query=retrieval_query,
@@ -115,16 +117,23 @@ def build_evidence_items(
     matched_round = round_by_query.get(result_query)
 
     chunks = list(getattr(retrieval_result, "chunks", []) or [])
-    vector_scores = list(getattr(retrieval_result, "scores", []) or [])
+    result_scores = list(getattr(retrieval_result, "scores", []) or [])
     rerank_scores = list(getattr(retrieval_result, "rerank_scores", []) or [])
+    score_type = str(getattr(retrieval_result, "score_type", "vector_similarity") or "vector_similarity")
+    rerank_applied = bool(getattr(retrieval_result, "rerank_applied", False))
 
     items: List[EvidenceItem] = []
     for idx, chunk in enumerate(chunks):
         rank = idx + 1
+        raw_score = _score_at(result_scores, idx)
+        vector_score = raw_score if (not rerank_applied and score_type == "vector_similarity") else None
+        rrf_score = raw_score if (not rerank_applied and score_type == "rrf") else None
+        rerank_score = _score_at(rerank_scores, idx) if rerank_applied else None
         item = chunk_to_evidence_item(
             chunk,
-            vector_score=_score_at(vector_scores, idx),
-            rerank_score=_score_at(rerank_scores, idx),
+            vector_score=vector_score,
+            rrf_score=rrf_score,
+            rerank_score=rerank_score,
             retrieval_round=getattr(matched_round, "round_id", None),
             retrieval_query=result_query or getattr(matched_round, "retrieval_query", None),
             rank_before_rerank=rank,
@@ -137,9 +146,11 @@ def build_evidence_items(
 
 
 def _item_rank_score(item: EvidenceItem) -> Tuple[float, float]:
-    """作用：给压缩排序提供稳定分数，优先 rerank_score，其次 vector_score。"""
-    primary = item.rerank_score if item.rerank_score is not None else item.vector_score
-    secondary = item.vector_score
+    """作用：给压缩排序提供稳定分数，优先 rerank_score，其次 rrf_score / vector_score。"""
+    primary = item.rerank_score
+    if primary is None:
+        primary = item.rrf_score if item.rrf_score is not None else item.vector_score
+    secondary = item.rrf_score if item.rrf_score is not None else item.vector_score
     return (
         float(primary) if primary is not None else float("-inf"),
         float(secondary) if secondary is not None else float("-inf"),

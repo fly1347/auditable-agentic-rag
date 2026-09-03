@@ -20,7 +20,7 @@
 - answerability: IN_SCOPE
 - route_candidate: OPEN_MULTI
 - confidence: high
-- reason: 问题明确询问 RAG 流程的主要步骤，信息可验证且范围清晰。
+- reason: 问题明确询问 RAG 流程的主要步骤，且信息可验证。
 
 ### 证据充分性
 
@@ -33,14 +33,14 @@
 - citation_count: 1
 - resolved_citation_count: 1
 - unresolved_citation_count: 0
-- claim_count: 11
-- unsupported_claim_count: 6
+- claim_count: 12
+- unsupported_claim_count: 4
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E2 | internal/01_RAG基础原理.md | internal/01_RAG基础原理.md@0-871#dfa7ac57160a | 0.6580 |
+| E1 | internal/01_RAG基础原理.md | internal/01_RAG基础原理.md@0-871#dfa7ac57160a | 0.0325 |
 
 #### 引用 claim 明细
 
@@ -48,17 +48,18 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1720 | E2 | RAG（检索增强生成）的完整流程主要包括两个阶段：离线索引阶段和在线检索-生成阶段 |
-| 2 | unsupported | 0.0200 | E2 | **离线索引阶段**： - 文档加载：从不同的数据源加载原始数据 |
-| 3 | unsupported | 0.0093 | E2 | - 文本分块：将加载的文档分割成较小的文本块 |
-| 4 | partial | 0.1631 | E2 | - Embedding 计算：将文本映射到高维向量空间 |
-| 5 | unsupported | 0.0140 | E2 | - 向量存储：将向量写入数据库以建立索引 |
-| 6 | unsupported | 0.0185 | E2 | **在线检索-生成阶段**： - 用户查询：接收用户的查询请求 |
-| 7 | partial | 0.1618 | E2 | - Query Embedding：将查询转化为向量 |
-| 8 | unsupported | 0.0235 | E2 | - 向量相似度检索：从索引中检索最相关的文档片段 |
-| 9 | partial | 0.1502 | E2 | - 构建 Prompt：将查询和检索到的文档片段结合 |
-| 10 | partial | 0.1487 | E2 | - LLM 生成回答：使用大语言模型生成最终答案 |
-| 11 | unsupported | 0.0154 | E2 | - 返回结果：将生成的答案返回给用户，并包含来源引用 [E2] |
+| 1 | partial | 0.1866 | E1 | RAG（检索增强生成）的完整流程主要分为两个阶段：**离线索引阶段**和**在线检索-生成阶段** |
+| 2 | unsupported | 0.0345 | E1 | **离线索引阶段**： - 文档加载：支持多种格式，提取纯文本 |
+| 3 | partial | 0.1518 | E1 | - 文本分块：将文档切分为较小的文本块（chunk） |
+| 4 | partial | 0.1631 | E1 | - Embedding 计算：将文本映射到高维向量空间 |
+| 5 | unsupported | 0.0188 | E1 | - 向量存储：将向量写入向量数据库，建立索引 |
+| 6 | partial | 0.1564 | E1 | **在线检索-生成阶段**： - 用户 Query：用户输入查询 |
+| 7 | partial | 0.1634 | E1 | - Query Embedding：将查询进行向量化 |
+| 8 | unsupported | 0.0235 | E1 | - 向量相似度检索：从数据库中检索最相关的文本块 |
+| 9 | partial | 0.1470 | E1 | - 构建 Prompt：将查询和检索到的文本块结合 |
+| 10 | partial | 0.1487 | E1 | - LLM 生成回答：使用大语言模型生成最终答案 |
+| 11 | unsupported | 0.0124 | E1 | - 返回结果：将结果返回给用户，并包含来源引用 |
+| 12 | partial | 0.1409 | E1 | 以上步骤构成了 RAG 的标准工作流程 [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -71,22 +72,22 @@
 - level: high
 - level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；unsupported_claim_count=6；unsupported_claim；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=4；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,130.585
+- offline_total_ms: 3,103.046
 - model_call_count: 1
 - prompt_tokens: 373
-- completion_tokens: 54
-- total_tokens: 427
-- estimated_cost_usd: 0.000088
+- completion_tokens: 52
+- total_tokens: 425
+- estimated_cost_usd: 0.000087
 
 ### 追溯信息
 
-- source_cer_sha256: `1ce19a11bb975f1feb768104dcace5fbf61fc99f5a25eb646e1182583d95f4ae`
-- answer_sha256: `4134c414c74629ef1b8cbf586d92ce927a68dcc5ca779f6fcf7cdc23157aa14e`
+- source_cer_sha256: `8dbfe44ae573f05c255a74b23dffa6707e818168fb0917197a4e72f177f52f11`
+- answer_sha256: `894355ca977caf421c6f22509d122473583afd8a4b5161ce322836bd53525bc1`
 
 ## q02 — OpenAI GPT-6 的内部架构是什么？
 
@@ -96,8 +97,8 @@
 - question_type: NARROW_FACT
 - answerability: OOD_CANDIDATE
 - route_candidate: REJECT_CANDIDATE
-- confidence: medium
-- reason: 内部架构信息可能未公开或受限于保密协议
+- confidence: high
+- reason: 该信息属于未公开的内部细节，无法验证
 
 ### 证据充分性
 
@@ -129,16 +130,16 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,649.584
+- offline_total_ms: 1,531.134
 - model_call_count: 1
 - prompt_tokens: 374
-- completion_tokens: 52
-- total_tokens: 426
-- estimated_cost_usd: 0.000087
+- completion_tokens: 50
+- total_tokens: 424
+- estimated_cost_usd: 0.000086
 
 ### 追溯信息
 
-- source_cer_sha256: `c8f91feaf9cd0f2fd11a0392bc994c3aa049b19de31f89a2964e8bd05ac630e5`
+- source_cer_sha256: `8b018c8a5b60554954499c90d84b88e5a5a69684607fe17a4cf70c1b7cb6315c`
 - answer_sha256: `76bf36d8ac30d8cd4dbfdd22e7e40a5be87f2d4e53ad995d12f1147b903196cf`
 
 ## q03 — 固定长度 chunk 和语义分块有什么区别？
@@ -170,8 +171,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | external/12-检索增强生成 (RAG) 技术综述-syhya.md | external/12-检索增强生成 (RAG) 技术综述-syhya.md@1237-1865#09b01ab21d25 | 0.0481 |
-| E2 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@0-685#1411d3bdb16d | 0.0328 |
+| E2 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@0-685#1411d3bdb16d | 0.0482 |
+| E1 | external/12-检索增强生成 (RAG) 技术综述-syhya.md | external/12-检索增强生成 (RAG) 技术综述-syhya.md@1237-1865#09b01ab21d25 | 0.0484 |
 
 #### 引用 claim 明细
 
@@ -179,8 +180,8 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1889 | E1 | 固定长度分块和语义分块的主要区别在于分块的方式和对语义的考虑： 1. **固定长度分块**：将文本按固定数量的 token 或字符进行分割，简单易实现，但可能会在语义单元中间切断，导致检索精度较差 [E1][E2] |
-| 2 | unsupported | 0.0414 | E2 | **语义分块**：利用自然语言处理技术识别文本中的语义边界进行分块，能够保留语义完整性，减少歧义，但实现较为复杂，块大小不固定 [E1][E2] |
+| 1 | partial | 0.1943 | E2 | 固定长度分块和语义分块的主要区别在于分块的依据和效果： 1. **固定长度分块**是根据固定的字符数或token数进行切分，简单易实现，但可能在语义上切断句子或段落，导致检索精度较差 [E2] |
+| 2 | unsupported | 0.0359 | E2 | **语义分块**则是利用自然语言处理技术，根据文本的语义边界进行切分，能够保留语义完整性，减少歧义，适用于需要高语义一致性的场景 [E1][E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -198,17 +199,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,273.879
+- offline_total_ms: 1,374.558
 - model_call_count: 1
 - prompt_tokens: 374
-- completion_tokens: 50
-- total_tokens: 424
+- completion_tokens: 49
+- total_tokens: 423
 - estimated_cost_usd: 0.000086
 
 ### 追溯信息
 
-- source_cer_sha256: `54b11ec3c931cad9485dafc8cab70a597076f760ba5edd22516688b84e6b9f08`
-- answer_sha256: `9b32557fc03962a066dc31b4cc430876f9c6565fed87c446f60a07430fc20776`
+- source_cer_sha256: `8f5136998a06647b48dc986f74c559ec0299d9777523754ae2112e7a7292e724`
+- answer_sha256: `e45907d6576164b3ff9b498fe1fcc85ea4c81bb5154607d67db2064e5bd32699`
 
 ## q04 — chunk size 过大会带来什么问题？
 
@@ -232,15 +233,15 @@
 - citation_count: 2
 - resolved_citation_count: 2
 - unresolved_citation_count: 0
-- claim_count: 3
-- unsupported_claim_count: 0
+- claim_count: 4
+- unsupported_claim_count: 1
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@1391-1768#5c5d7a6818b5 | 0.6302 |
-| E2 | external/14-text-chunking-datawhale.md | external/14-text-chunking-datawhale.md@597-1194#e880edf6d91e | 0.5186 |
+| E1 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@1391-1768#5c5d7a6818b5 | 0.0328 |
+| E4 | external/14-text-chunking-datawhale.md | external/14-text-chunking-datawhale.md@597-1194#e880edf6d91e | 0.0161 |
 
 #### 引用 claim 明细
 
@@ -249,8 +250,9 @@
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
 | 1 | partial | 0.1436 | E1 | chunk size 过大会带来以下问题： 1. 检索精度下降，相关内容可能被噪声稀释 |
-| 2 | supported | 0.2512 | E1 | 占用更多的 LLM context 窗口，导致处理效率降低 |
-| 3 | partial | 0.2107 | E1 | embedding 向量的语义混杂，信息表达变得笼统，关键细节模糊化，从而降低检索的精度 [E1][E2] |
+| 2 | supported | 0.2517 | E1 | 占用更多的 LLM context 窗口，导致资源浪费 |
+| 3 | partial | 0.2095 | E1 | embedding 向量的语义混杂，降低了信息的清晰度和检索的准确性 |
+| 4 | unsupported | 0.0808 | E4 | 在嵌入过程中，信息损失不可避免，长文本块的语义点过多，导致单一向量的表示变得笼统，关键细节被模糊化，从而降低检索精度 [E1][E4] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -260,15 +262,15 @@
 
 ### 综合不确定性（派生信号）
 
-- level: medium
-- level_meaning: 不确定性/风险中等
+- level: high
+- level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=1；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,045.961
+- offline_total_ms: 1,455.942
 - model_call_count: 1
 - prompt_tokens: 373
 - completion_tokens: 45
@@ -277,19 +279,19 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `4fb84d37da55eeb78ef59d5402092e074cd0440e8499ec824d9ba92daf20d268`
-- answer_sha256: `38aa19f6439f55b1969eb62063c58c6e3f6f98065aa251d41478b7b2992581b5`
+- source_cer_sha256: `7c19bf6fca3b9ed5c77dd035969be27defe41dc014edb19924a21e8c10ce854a`
+- answer_sha256: `06b04017f744e360b97a6be6f48dd1c534191cf3b8fa6e565ae7635361f9949a`
 
 ## q05 — 为什么 embedding 相似度常用余弦相似度？
 
 ### 分类与回答边界
 
 - actual_route: DIRECT
-- question_type: NARROW_FACT
+- question_type: SUMMARY
 - answerability: IN_SCOPE
-- route_candidate: DIRECT
+- route_candidate: OPEN_MULTI
 - confidence: high
-- reason: 问题明确，询问的是余弦相似度在 embedding 相似度中的常用原因，答案可以提供具体的解释。
+- reason: 问题明确，涉及 embedding 相似度的常用方法，且可以提供清晰的解释。
 
 ### 证据充分性
 
@@ -309,8 +311,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/03_Embedding原理与向量空间.md | internal/03_Embedding原理与向量空间.md@685-1106#3f0be53594bb | 0.7071 |
-| E2 | external/16-vector-embedding-datawhale.md | external/16-vector-embedding-datawhale.md@398-804#13940eb805c6 | 0.6373 |
+| E1 | internal/03_Embedding原理与向量空间.md | internal/03_Embedding原理与向量空间.md@685-1106#3f0be53594bb | 0.0328 |
+| E2 | external/16-vector-embedding-datawhale.md | external/16-vector-embedding-datawhale.md@398-804#13940eb805c6 | 0.0320 |
 
 #### 引用 claim 明细
 
@@ -320,13 +322,13 @@
 | --: | :-- | --: | :-- | :-- |
 | 1 | unsupported | 0.0652 | E1 | 余弦相似度常用的原因包括： 1. **归一化处理**：余弦相似度消除了向量长度的影响，专注于向量的方向，这对于文本长度不一的情况尤为重要 |
 | 2 | unsupported | 0.0579 | E1 | **值域直观**：其值域为[-1, 1]，便于理解，1表示完全相同方向，0表示正交，-1表示完全相反 |
-| 3 | unsupported | 0.0497 | E1 | **适用性**：余弦相似度适合高维稀疏或密集的语义向量，能够有效反映语义相似性 [E1]、[E2] |
+| 3 | unsupported | 0.0498 | E1 | **适用性**：余弦相似度适合高维稀疏或密集的语义向量，能够有效反映语义相似性 [E1][E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
-- triggered: false
+- triggered: true
 - conflict_count: 0
-- trigger_reason: NARROW_FACT 不在规则触发类型中，不执行冲突扫描
+- trigger_reason: SUMMARY 多来源问题，触发规则冲突扫描
 
 ### 综合不确定性（派生信号）
 
@@ -338,17 +340,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,254.178
+- offline_total_ms: 1,246.133
 - model_call_count: 1
 - prompt_tokens: 377
-- completion_tokens: 65
-- total_tokens: 442
-- estimated_cost_usd: 0.000096
+- completion_tokens: 53
+- total_tokens: 430
+- estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `ddd8cb2f17c19b583d06ecbedf64aee044bd93b1b7eb41954b94d4965f0159cc`
-- answer_sha256: `4389352a62968b41733e6f82e80d232abb43547915915776c6dcd49edc17cf1b`
+- source_cer_sha256: `a30aa1fbc4d13024f568f10098711b308136f2663d274c428b0b93115dd79d88`
+- answer_sha256: `26abdb709e92067a1cafe5439b39f0609348b16a2081d9488c8165591d3cdc6c`
 
 ## q06 — 在 RAG 系统中，什么情况下容易产生 hallucination？
 
@@ -359,7 +361,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DIRECT
 - confidence: high
-- reason: 问题明确询问 RAG 系统中产生幻觉的具体情况，且信息可验证。
+- reason: 问题明确询问 RAG 系统中 hallucination 产生的情况，且没有不可验证的风险。
 
 ### 证据充分性
 
@@ -369,18 +371,17 @@
 ### 引用证据支撑（规则）
 
 - citation_support_label: partial
-- citation_count: 2
-- resolved_citation_count: 2
+- citation_count: 1
+- resolved_citation_count: 1
 - unresolved_citation_count: 0
-- claim_count: 3
-- unsupported_claim_count: 2
+- claim_count: 4
+- unsupported_claim_count: 0
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | external/12-检索增强生成 (RAG) 技术综述-syhya.md | external/12-检索增强生成 (RAG) 技术综述-syhya.md@518-1237#59ad08ea7df5 | 0.6060 |
-| E3 | external/12-检索增强生成 (RAG) 技术综述-syhya.md | external/12-检索增强生成 (RAG) 技术综述-syhya.md@20859-21506#4ce255e17806 | 0.5993 |
+| E2 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@639-1332#2b5bc2c58bf3 | 0.0164 |
 
 #### 引用 claim 明细
 
@@ -388,9 +389,10 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1314 | E1 | 在 RAG 系统中，容易产生 hallucination 的情况主要与以下因素有关： 1. **上下文窗口限制**：由于 LLM 的上下文窗口长度有限，过长的上下文可能导致中间遗忘问题，从而影响生成的准确性 [E1] |
-| 2 | unsupported | 0.0341 | E3 | **噪声管理**：在训练中注入不相关结果或噪声可能会影响模型的鲁棒性，导致生成不准确的信息 [E3] |
-| 3 | unsupported | 0.0888 | E3 | 因此，RAG 系统在处理信息时，若未能有效管理上下文和噪声，容易产生 hallucination |
+| 1 | partial | 0.1845 | E2 | 在 RAG 系统中，容易产生幻觉的情况包括： 1. 知识库中没有相关文档（召回失败） |
+| 2 | supported | 1.0000 | E2 | 用户问题超出知识库覆盖范围 |
+| 3 | supported | 1.0000 | E2 | LLM 被过于自信的 Prompt 诱导强制生成答案 |
+| 4 | supported | 1.0000 | E2 | 检索到的 chunks 信息不足以支撑完整回答 [E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -400,25 +402,25 @@
 
 ### 综合不确定性（派生信号）
 
-- level: high
-- level_meaning: 不确定性/风险高
+- level: medium
+- level_meaning: 不确定性/风险中等
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；unsupported_claim_count=2；unsupported_claim；partial_support
+- missing_info: citation_support_label=partial；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,035.135
+- offline_total_ms: 3,133.656
 - model_call_count: 1
 - prompt_tokens: 377
-- completion_tokens: 57
-- total_tokens: 434
-- estimated_cost_usd: 0.000091
+- completion_tokens: 59
+- total_tokens: 436
+- estimated_cost_usd: 0.000092
 
 ### 追溯信息
 
-- source_cer_sha256: `5073aa8631f7fbed4ebef0710eec5279a7a0ed495ea318cafa0044920b442cac`
-- answer_sha256: `82622d91d3f1da90c19239828b626f17807f37697b76128c387bc2b9adb79bd5`
+- source_cer_sha256: `7fb75f1cdea957e707179cec0bc52ad4feaa9532db5929f306308c50e2ad0109`
+- answer_sha256: `91d81c9415ce419f7d7fd0fb5e1e7becdd8718b873f9335c2cfacdafcdf8a766`
 
 ## q07 — Multi-AZ 部署如何降低系统单点故障风险？
 
@@ -439,17 +441,18 @@
 ### 引用证据支撑（规则）
 
 - citation_support_label: partial
-- citation_count: 1
-- resolved_citation_count: 1
+- citation_count: 2
+- resolved_citation_count: 2
 - unresolved_citation_count: 0
 - claim_count: 5
-- unsupported_claim_count: 0
+- unsupported_claim_count: 1
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/09_MultiAZ高可用设计.md | internal/09_MultiAZ高可用设计.md@613-1434#0c95c99cfcbb | 0.7523 |
+| E1 | internal/09_MultiAZ高可用设计.md | internal/09_MultiAZ高可用设计.md@613-1434#0c95c99cfcbb | 0.0328 |
+| E2 | internal/09_MultiAZ高可用设计.md | internal/09_MultiAZ高可用设计.md@1434-2292#093c8c8d2e8b | 0.0310 |
 
 #### 引用 claim 明细
 
@@ -457,11 +460,11 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.2028 | E1 | Multi-AZ 部署通过以下方式降低系统单点故障风险： 1. **故障隔离**：每个可用区（AZ）是独立的故障域，某个 AZ 发生故障时，其他 AZ 的服务不受影响，能够实现自动故障转移 |
-| 2 | partial | 0.1693 | E1 | 例如，当 AZ-1 发生故障时，AZ-2 可以自动提升为主节点，确保服务持续可用 [E1] |
-| 3 | partial | 0.1911 | E1 | **同步复制**：数据库在写入时会同步复制到多个 AZ 的副本，确保在故障切换时数据不会丢失，达到接近零的数据丢失目标（RPO ≈ 0） [E1] |
-| 4 | partial | 0.1898 | E1 | **负载均衡**：负载均衡器将请求分发到多个 AZ 中的健康实例，单个 AZ 故障时流量会自动切换，用户不会感知到服务中断 [E1] |
-| 5 | partial | 0.1453 | E1 | 通过这些机制，Multi-AZ 部署显著提高了系统的可用性和容错能力 |
+| 1 | partial | 0.2100 | E1 | Multi-AZ 部署通过以下方式降低系统单点故障风险： 1. **故障隔离**：每个可用区（AZ）是独立的故障域，若一个 AZ 发生故障，其他 AZ 的副本不受影响，服务可以自动切换到健康的副本，从而保持系统的可用性 [E1] |
+| 2 | partial | 0.1952 | E1 | **同步复制**：数据库在写入时会同步复制到多个 AZ 的副本，确保在故障切换时数据不会丢失，恢复点目标（RPO）接近于零 [E1] |
+| 3 | partial | 0.1935 | E1 | **负载均衡**：负载均衡器将请求分发到多个 AZ 中的健康实例，确保在单个 AZ 故障时流量能够自动切换，用户体验不受影响 [E1] |
+| 4 | partial | 0.1993 | E2 | **Pod 反亲和性和均匀分布**：通过强制 Pods 跨 AZ 分布，确保任一 AZ 故障只影响该 AZ 的 Pods，避免单点故障 [E2] |
+| 5 | unsupported | 0.0073 | E2 | 这些机制共同作用，显著提高了系统的高可用性和容错能力 |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -471,25 +474,25 @@
 
 ### 综合不确定性（派生信号）
 
-- level: medium
-- level_meaning: 不确定性/风险中等
+- level: high
+- level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=1；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,141.619
+- offline_total_ms: 2,951.114
 - model_call_count: 1
 - prompt_tokens: 377
-- completion_tokens: 56
-- total_tokens: 433
-- estimated_cost_usd: 0.000090
+- completion_tokens: 57
+- total_tokens: 434
+- estimated_cost_usd: 0.000091
 
 ### 追溯信息
 
-- source_cer_sha256: `178caf15c6031dd5177bfb445a1765c58654347fc02648c0be3991d3ab0cb566`
-- answer_sha256: `e58fb77010470b02f6e174c97d57cceea4878c5c7694d58556e99251abbba437`
+- source_cer_sha256: `44fb97666804ef2560ff5684f3273e6ea45b3073769d82c906ea89b14756b428`
+- answer_sha256: `6540772a309e783bfaa7bdecb443f1f580368c53b4a1c2b1241df918a9eb909b`
 
 ## q08 — HNSW 和 IVF 向量索引有什么主要区别？
 
@@ -500,7 +503,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DECOMPOSE
 - confidence: high
-- reason: 问题明确要求比较两个已知的向量索引方法，且信息可验证。
+- reason: 问题明确要求比较 HNSW 和 IVF 两种向量索引的主要区别，且信息可验证。
 
 ### 证据充分性
 
@@ -510,17 +513,19 @@
 ### 引用证据支撑（规则）
 
 - citation_support_label: partial
-- citation_count: 1
-- resolved_citation_count: 1
+- citation_count: 3
+- resolved_citation_count: 3
 - unresolved_citation_count: 0
-- claim_count: 7
+- claim_count: 8
 - unsupported_claim_count: 0
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E4 | external/22-milvus-datawhale.md | external/22-milvus-datawhale.md@4526-5014#fc79b169f6c2 | 0.0313 |
+| E3 | external/22-milvus-datawhale.md | external/22-milvus-datawhale.md@4526-5014#fc79b169f6c2 | 0.0320 |
+| E5 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@849-1558#5387fc2754ce | 0.0164 |
+| E4 | external/26-Milvus-索引解释.md | external/26-Milvus-索引解释.md@3003-3627#3603b200df69 | 0.0313 |
 
 #### 引用 claim 明细
 
@@ -528,13 +533,14 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1584 | E4 | HNSW（Hierarchical Navigable Small World）和IVF（Inverted File）是两种主要的向量索引算法，它们的主要区别在于数据结构和检索方式： 1. **数据结构**： - HNSW使用基于图的结构，通过构建多层邻近图来进行检索，适合处理高维数据和低延迟查询 [E4] |
-| 2 | supported | 0.2389 | E4 | - IVF则将向量分成多个“桶”，查询时先找到最相似的几个桶，然后在这些桶内进行精确搜索 [E4] |
-| 3 | partial | 0.2029 | E4 | **检索速度与召回率**： - HNSW提供较高的检索速度和召回率，尤其在高维数据中表现优异，但内存占用较大 [E4] |
-| 4 | supported | 0.2450 | E4 | - IVF通过缩小搜索范围来提升检索速度，但召回率不是100%，因为相关向量可能被分到未搜索的桶中 [E4] |
-| 5 | supported | 0.2283 | E4 | **适用场景**： - HNSW适合对查询延迟有严格要求的场景，如实时推荐和在线搜索 [E4] |
-| 6 | partial | 0.2075 | E4 | - IVF适合需要高吞吐量的大规模数据集的通用场景 [E4] |
-| 7 | supported | 0.2336 | E4 | 综上所述，HNSW和IVF在数据结构、检索效率和适用场景上存在显著差异 |
+| 1 | supported | 0.2838 | E3 | HNSW 和 IVF 向量索引的主要区别在于它们的结构和工作原理： 1. **数据结构**： - HNSW 使用基于图的结构，通过构建多层邻近图来进行搜索，适合高维数据和低延迟查询 [E3] |
+| 2 | supported | 0.2275 | E3 | - IVF 则通过聚类将向量空间划分为多个“桶”，查询时只在最相似的几个桶内进行精确搜索 [E3][E5] |
+| 3 | partial | 0.1952 | E3 | **检索速度与精度**： - HNSW 提供极快的检索速度和较高的召回率，但内存占用较大 [E3] |
+| 4 | supported | 0.2258 | E3 | - IVF 通过缩小搜索范围来提升检索速度，适合大规模数据集，但召回率不是100% [E3][E5] |
+| 5 | partial | 0.1892 | E3 | **内存占用**： - HNSW 通常占用更多内存，因为其图结构需要更多的空间 [E4] |
+| 6 | partial | 0.1971 | E4 | - IVF 及其变体（如 IVFPQ）在内存使用上更为高效 [E4] |
+| 7 | supported | 0.2322 | E3 | **构建速度**： - IVF 的构建速度通常比 HNSW 快 [E5] |
+| 8 | supported | 0.2605 | E3 | 综上所述，HNSW 更适合对查询延迟有严格要求的场景，而 IVF 则在处理大规模数据时表现更佳 |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -552,17 +558,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,091.669
+- offline_total_ms: 2,402.941
 - model_call_count: 1
 - prompt_tokens: 377
-- completion_tokens: 54
-- total_tokens: 431
-- estimated_cost_usd: 0.000089
+- completion_tokens: 58
+- total_tokens: 435
+- estimated_cost_usd: 0.000091
 
 ### 追溯信息
 
-- source_cer_sha256: `eabce41cd4be0aae89063d2526f0b7c4b3774c9b66937ca91c24cf274b066f27`
-- answer_sha256: `99d91adf0778fc036dcd84954f13dd4e06af964769723e264d5c891866892889`
+- source_cer_sha256: `149119e51a169c40c1ee93ff44f41d5235c23ff1f520360a963cb90ddf1ec7e9`
+- answer_sha256: `a6ad73781c6ff593fe9c47235323c784986a7107af80b7e0433a34a245ac283a`
 
 ## q09 — Kubernetes control plane 包含哪些核心组件？
 
@@ -593,8 +599,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@0-1115#f0413c5d9c86 | 0.6686 |
-| E2 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@1115-1993#1114731f27b6 | 0.6252 |
+| E1 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@0-1115#f0413c5d9c86 | 0.0328 |
+| E2 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@1115-1993#1114731f27b6 | 0.0323 |
 
 #### 引用 claim 明细
 
@@ -602,10 +608,10 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1911 | E1 | Kubernetes control plane 包含以下核心组件： 1. **API Server（kube-apiserver）**：K8s 的唯一入口，负责所有组件和客户端的交互 |
-| 2 | partial | 0.1643 | E2 | **etcd**：分布式键值存储，保存集群的所有状态 |
-| 3 | supported | 0.2224 | E2 | **Scheduler（kube-scheduler）**：负责将新建的 Pod 分配到合适的 Node |
-| 4 | supported | 0.2603 | E2 | **Controller Manager（kube-controller-manager）**：多个控制器的集合，负责使实际状态趋向期望状态，如管理 Pod 副本数、滚动更新等 [E1][E2] |
+| 1 | partial | 0.1911 | E1 | Kubernetes control plane 包含以下核心组件： 1. **API Server**（kube-apiserver）：K8s 的唯一入口，负责所有组件和客户端的交互 |
+| 2 | partial | 0.1663 | E2 | **etcd**：分布式键值存储，保存集群所有状态 |
+| 3 | supported | 0.2204 | E2 | **Scheduler**（kube-scheduler）：负责将新建的 Pod 分配到合适的 Node |
+| 4 | supported | 0.2315 | E2 | **Controller Manager**（kube-controller-manager）：多个控制器的集合，负责使实际状态趋向期望状态 [E1][E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -623,17 +629,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,100.457
+- offline_total_ms: 3,171.159
 - model_call_count: 1
 - prompt_tokens: 373
-- completion_tokens: 52
-- total_tokens: 425
-- estimated_cost_usd: 0.000087
+- completion_tokens: 53
+- total_tokens: 426
+- estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `81b67e7e4238b5674b7ac4412a640518b40aac0c5ed1dd1f22ecc80f99938b99`
-- answer_sha256: `89cb8c02066d5be72159dd814c5d5bca290c736fa2d7cb0607f110d1d5547eec`
+- source_cer_sha256: `e4d67e1c156472d03259871b5462d39e84d48952cfc69d6df13afec7de5802c8`
+- answer_sha256: `44dbf45dbecbed8fdc671ecd7dff5bc38c2e7e0bc84ad1e3a5811e9fef2e116e`
 
 ## q10 — KV cache 在大模型推理中有什么作用？
 
@@ -657,15 +663,15 @@
 - citation_count: 2
 - resolved_citation_count: 2
 - unresolved_citation_count: 0
-- claim_count: 3
+- claim_count: 4
 - unsupported_claim_count: 0
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/10_模型服务层vLLM架构.md | internal/10_模型服务层vLLM架构.md@0-773#e9b11b984010 | 0.7072 |
-| E2 | external/34-vllm_architecture_cn.md | external/34-vllm_architecture_cn.md@5634-6214#2c8ba4fa9cdf | 0.6185 |
+| E1 | internal/10_模型服务层vLLM架构.md | internal/10_模型服务层vLLM架构.md@0-773#e9b11b984010 | 0.0328 |
+| E2 | external/34-vllm_architecture_cn.md | external/34-vllm_architecture_cn.md@5634-6214#2c8ba4fa9cdf | 0.0161 |
 
 #### 引用 claim 明细
 
@@ -673,9 +679,10 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.2534 | E1 | KV Cache 在大模型推理中的作用是缓存历史 token 的 Key 和 Value 矩阵，以避免在每次生成新 token 时重复计算，从而降低计算复杂度 |
-| 2 | partial | 0.1721 | E1 | 具体来说，使用 KV Cache 可以将复杂度从 O(n²) 降低到 O(n)，显著提高推理效率 [E1] |
-| 3 | partial | 0.1988 | E1 | 此外，KV Cache 还面临内存管理的挑战，传统方法导致内存利用率低下，而 vLLM 通过灵活的缓存策略和哈希表管理来优化 KV Cache 的使用 [E2] |
+| 1 | supported | 0.2471 | E1 | KV Cache 在大模型推理中的作用主要是缓存历史 token 的 Key 和 Value 矩阵，从而避免重复计算，显著降低计算复杂度 |
+| 2 | partial | 0.2030 | E1 | 具体来说，使用 KV Cache 可以将每步生成新 token 的复杂度从 O(n²) 降低到 O(n)，提高推理效率 [E1] |
+| 3 | partial | 0.1774 | E1 | 此外，KV Cache 还面临传统内存管理低效的问题，如内存碎片和利用率低等 |
+| 4 | partial | 0.2126 | E1 | vLLM 通过改进的缓存策略和管理机制，优化了 KV Cache 的使用，提升了 GPU 内存的利用率和推理性能 [E1][E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -693,17 +700,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,454.465
+- offline_total_ms: 2,310.814
 - model_call_count: 1
 - prompt_tokens: 374
-- completion_tokens: 54
-- total_tokens: 428
-- estimated_cost_usd: 0.000088
+- completion_tokens: 55
+- total_tokens: 429
+- estimated_cost_usd: 0.000089
 
 ### 追溯信息
 
-- source_cer_sha256: `db6ddaf9c4e9b622896917673f66382c7f8decd6905497d686b29a6e48d5b8af`
-- answer_sha256: `96ef6976ec2209997a97cef2388167599d866fe3196f2956aabdb7f58cc4ee95`
+- source_cer_sha256: `35347ce1977fa139bf0a30cdbe59e75d4b87f0371fa1609b2c96be1c2d7266b6`
+- answer_sha256: `e4998b1a0927d5e7988b78c240ac2ce1e048d65bd1f5f142b961bd4230d94460`
 
 ## q11 — Overlap 在文本分块中有什么作用？
 
@@ -727,14 +734,14 @@
 - citation_count: 1
 - resolved_citation_count: 1
 - unresolved_citation_count: 0
-- claim_count: 3
-- unsupported_claim_count: 0
+- claim_count: 4
+- unsupported_claim_count: 1
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E4 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@685-1391#5484310af4bf | 0.6087 |
+| E1 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@685-1391#5484310af4bf | 0.0320 |
 
 #### 引用 claim 明细
 
@@ -742,9 +749,10 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.2232 | E4 | Overlap 在文本分块中的作用主要有两个： 1. **防止信息丢失**：Overlap 通过在相邻的文本块之间共享一定数量的 token，防止跨越边界的关键信息被切断而丢失，从而保持信息的完整性 |
-| 2 | partial | 0.1849 | E4 | **提升上下文连贯性**：Overlap 有助于保留上下文的连贯性，提升边界附近的检索召回率，使得模型在处理相邻块时能够更好地理解上下文关系 |
-| 3 | partial | 0.2134 | E4 | 然而，Overlap 也有副作用，如增加存储量和可能导致信息冗余，因此通常建议将重叠设置为 chunk_size 的 10%~20% [E4] |
+| 1 | partial | 0.1966 | E1 | Overlap 在文本分块中的作用主要是防止关键信息在分块边界被切断，从而保留上下文的连贯性，提升边界附近的检索召回率 |
+| 2 | supported | 0.2541 | E1 | 具体来说，Overlap 是指相邻 chunk 之间共享一定数量的 token，例如，设置 chunk_size 为 400，重叠为 50，则前一个 chunk 的最后 50 个 token 会与下一个 chunk 重叠 |
+| 3 | unsupported | 0.0306 | E1 | 这种策略有助于确保信息的完整性和上下文的连贯性，但也会增加存储量，并可能导致检索时的冗余信息干扰生成 |
+| 4 | partial | 0.1981 | E1 | 通常，Overlap 的大小建议为 chunk_size 的 10%~20% [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -754,15 +762,15 @@
 
 ### 综合不确定性（派生信号）
 
-- level: medium
-- level_meaning: 不确定性/风险中等
+- level: high
+- level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=1；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,989.105
+- offline_total_ms: 2,955.248
 - model_call_count: 1
 - prompt_tokens: 372
 - completion_tokens: 51
@@ -771,8 +779,8 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `ddbc9ac3086349a48964e324d662444de1385b3135f1da3d6f801b5fae8b7cee`
-- answer_sha256: `c936190f6a482e9450714f78c0f1f68350222dd105bf94bc621bf0d0f9ba47d1`
+- source_cer_sha256: `0765467ac5aac63231f06729ac138e5b43822b6d939f8c66fa45e84fb5f3f3a3`
+- answer_sha256: `5f4254270075ccde9bea6e545221564e61f9ab3f23283aa5f6ac6e4f30895f82`
 
 ## q12 — Embedding 维度会影响哪些方面？
 
@@ -803,7 +811,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/03_Embedding原理与向量空间.md | internal/03_Embedding原理与向量空间.md@1106-1746#7cc4b717d45c | 0.7832 |
+| E1 | internal/03_Embedding原理与向量空间.md | internal/03_Embedding原理与向量空间.md@1106-1746#7cc4b717d45c | 0.0328 |
 
 #### 引用 claim 明细
 
@@ -812,7 +820,7 @@
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
 | 1 | supported | 0.2280 | E1 | Embedding 维度会影响以下几个方面： 1. **语义表达能力**：维度越高，理论上能编码越多信息，但收益递减 |
-| 2 | partial | 0.2139 | E1 | **内存与存储**：维度越高，每个向量占用的空间越大（例如，float32格式下1维=4字节） |
+| 2 | partial | 0.2102 | E1 | **内存与存储**：维度越高，每个向量占用的空间越大（例如，float32格式下1维占用4字节） |
 | 3 | unsupported | 0.0406 | E1 | **检索延迟**：高维向量计算相似度的速度较慢，索引构建也更耗资源 |
 | 4 | unsupported | 0.0403 | E1 | **维度灾难**：当维度极高时，所有点之间的距离趋于相等，可能导致检索失效 [E1] |
 
@@ -832,17 +840,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,092.399
+- offline_total_ms: 1,712.807
 - model_call_count: 1
 - prompt_tokens: 372
-- completion_tokens: 46
-- total_tokens: 418
+- completion_tokens: 45
+- total_tokens: 417
 - estimated_cost_usd: 0.000083
 
 ### 追溯信息
 
-- source_cer_sha256: `384fe433235e275b4e0f339fc2be416d357d1f12de8bde0703e84d07799e59e6`
-- answer_sha256: `99cfc7f6ab9a34a2236d0057e769b85c5ff458eefc9c3e17eb59386f2a95807e`
+- source_cer_sha256: `7213808b0f635710986fa0b0338bfba3be882f6fcd4df3d6e7272343936c36e3`
+- answer_sha256: `6bf597c1ce3f3118a6ba5374c2060c4e141f7324c83a6f0c215954e6a913f3e2`
 
 ## q13 — Embedding 是否真正“理解”语义？
 
@@ -873,7 +881,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/03_Embedding原理与向量空间.md | internal/03_Embedding原理与向量空间.md@1106-1746#7cc4b717d45c | 0.6552 |
+| E1 | internal/03_Embedding原理与向量空间.md | internal/03_Embedding原理与向量空间.md@1106-1746#7cc4b717d45c | 0.0328 |
 
 #### 引用 claim 明细
 
@@ -883,7 +891,7 @@
 | --: | :-- | --: | :-- | :-- |
 | 1 | partial | 0.1932 | E1 | Embedding 模型并不真正“理解”语义，而是捕捉语义的统计规律 |
 | 2 | unsupported | 0.0852 | E1 | 它通过大量文本训练，将经常出现在相似上下文中的文本映射到相近的向量位置，能够处理语义相似性，但对逻辑推理和因果关系等高阶理解能力有限 |
-| 3 | partial | 0.1957 | E1 | 此外，Embedding 对否定词和精确数字的敏感度较低，可能导致相似的向量表示不同的语义内容 [E1] |
+| 3 | partial | 0.1916 | E1 | 此外，Embedding 对否定词和精确数字的敏感性较差，这表明其在某些情况下可能无法准确反映语义的真实含义 [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -901,7 +909,7 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,117.989
+- offline_total_ms: 1,289.913
 - model_call_count: 1
 - prompt_tokens: 372
 - completion_tokens: 59
@@ -910,8 +918,8 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `96ac34f8b077c8f2b6b1f40397c8e5db1eec853323ebf53770f57b7df7c76222`
-- answer_sha256: `c8536640881c6b08389f1375752eebfcbca917cf298680eeb8a939ec487bc3ef`
+- source_cer_sha256: `601eaa152c7165cfbe6b6f7bd2ac2f39046af6bdfd72da59f5d3fdf87f7bd788`
+- answer_sha256: `c90d36d2ec6e176113f9b08012f7d8e3a55c0de161039434744a2dda4ab21ae3`
 
 ## q14 — 什么叫 evidence insufficient（证据不充分）？
 
@@ -942,7 +950,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@1332-1937#311a87398ac2 | 0.6815 |
+| E1 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@1332-1937#311a87398ac2 | 0.0328 |
 
 #### 引用 claim 明细
 
@@ -950,8 +958,8 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1456 | E1 | “证据不充分”（Evidence Insufficient）指的是在回答中，检索到的内容未能提供足够的信息来支撑每个关键声明 |
-| 2 | unsupported | 0.0390 | E1 | 这种情况的判断标准包括： 1. 回答中包含检索内容以外的推断 |
+| 1 | partial | 0.1411 | E1 | “证据不充分”（Evidence Insufficient）指的是在回答问题时，检索到的内容未能提供足够的信息来支持每个关键声明 |
+| 2 | unsupported | 0.0369 | E1 | 这种情况的判断标准包括： 1. 回答中包含了检索内容以外的推断 |
 | 3 | unsupported | 0.0357 | E1 | 关键问题需要多跳推理，但仅召回了部分链条 |
 | 4 | supported | 1.0000 | E1 | 检索结果覆盖了话题方向，但缺乏具体数据或细节 [E1] |
 
@@ -971,17 +979,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,088.207
+- offline_total_ms: 2,444.824
 - model_call_count: 1
 - prompt_tokens: 374
-- completion_tokens: 57
-- total_tokens: 431
-- estimated_cost_usd: 0.000090
+- completion_tokens: 58
+- total_tokens: 432
+- estimated_cost_usd: 0.000091
 
 ### 追溯信息
 
-- source_cer_sha256: `8fc2796db9c1a007c0e3dd483fa6d4bde4c0b5ebbe53692dc3e45390aee46544`
-- answer_sha256: `5433011c0e63b53a8e1a98d5bb64f993cc75ac106eeb4caf1f1b7be33a7950ee`
+- source_cer_sha256: `69aa34c6c0c06d9e81e42353fb62177493a8a6ca064a88d667048444ed89631d`
+- answer_sha256: `5c0533ef861f2f422e7f248e605c6e95717d2775a7b4e67cc2ce0bd1a8b692ca`
 
 ## q15 — 检索错但回答对，在 RAG 评估里算成功吗？
 
@@ -989,10 +997,10 @@
 
 - actual_route: DIRECT
 - question_type: SUMMARY
-- answerability: IN_SCOPE
-- route_candidate: OPEN_MULTI
+- answerability: NEEDS_CLARIFICATION
+- route_candidate: NEEDS_CLARIFICATION
 - confidence: medium
-- reason: 问题涉及 RAG 评估的成功标准，范围明确但可能存在不同解读。
+- reason: 问题缺少对成功标准的具体定义和评估范围
 
 ### 证据充分性
 
@@ -1012,7 +1020,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E2 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@1332-1937#311a87398ac2 | 0.5874 |
+| E2 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@1332-1937#311a87398ac2 | 0.0325 |
 
 #### 引用 claim 明细
 
@@ -1021,8 +1029,8 @@
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
 | 1 | partial | 0.1671 | E2 | 检索错但回答对在 RAG 评估中不算成功 |
-| 2 | partial | 0.1805 | E2 | 尽管最终回答可能正确，但这源于 LLM 的参数记忆，而非可追溯的检索证据，因此不被视为有效的成功案例 |
-| 3 | supported | 0.2762 | E2 | 这种情况应标记为“Retrieval Failed, Answer Lucky”，不计入正确答案 [E2] |
+| 2 | partial | 0.1982 | E2 | 尽管最终回答可能正确，但这通常是由于 LLM 的参数记忆（即幻觉的一种形式），而不是基于可追溯的检索证据 |
+| 3 | supported | 0.2756 | E2 | 因此，这种情况应标记为“Retrieval Failed, Answer Lucky”，不计入正确答案 [E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1040,17 +1048,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,444.419
+- offline_total_ms: 1,174.563
 - model_call_count: 1
 - prompt_tokens: 380
-- completion_tokens: 53
-- total_tokens: 433
-- estimated_cost_usd: 0.000089
+- completion_tokens: 48
+- total_tokens: 428
+- estimated_cost_usd: 0.000086
 
 ### 追溯信息
 
-- source_cer_sha256: `c00dd223705c5167b50545d24f97d97e7538e0940e47add49bde9598146370f4`
-- answer_sha256: `d53631b4340850c9f18221a93a0b626542d93397e70c8558375d60fd62c992b2`
+- source_cer_sha256: `126230623d9b4f484dbc47696af249789615bcf07f8542c803890c37f01a72e3`
+- answer_sha256: `f2d2346765f88e2f5aa5ebc35bc4ac916a1276a8103327b2d439a85dd37af63d`
 
 ## q16 — pgvector 和专用向量数据库相比，有什么主要差异？
 
@@ -1061,7 +1069,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DECOMPOSE
 - confidence: high
-- reason: 问题明确比较了两个对象，且信息可验证。
+- reason: 问题明确比较了 pgvector 和专用向量数据库，且信息可验证。
 
 ### 证据充分性
 
@@ -1074,14 +1082,14 @@
 - citation_count: 1
 - resolved_citation_count: 1
 - unresolved_citation_count: 0
-- claim_count: 13
-- unsupported_claim_count: 3
+- claim_count: 12
+- unsupported_claim_count: 2
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/05_pgvector原理.md | internal/05_pgvector原理.md@1303-1989#f133a907d82c | 0.0320 |
+| E1 | internal/05_pgvector原理.md | internal/05_pgvector原理.md@1303-1989#f133a907d82c | 0.0472 |
 
 #### 引用 claim 明细
 
@@ -1089,19 +1097,18 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.3012 | E1 | pgvector 和专用向量数据库（如 Qdrant 和 Milvus）之间的主要差异如下： 1. **架构**：pgvector 是 PostgreSQL 的扩展，而专用向量数据库是独立的数据库系统 |
-| 2 | supported | 0.2204 | E1 | **集成成本**：pgvector 的集成成本较低，因为可以复用已有的 PostgreSQL 栈 |
+| 1 | supported | 0.3014 | E1 | pgvector 和专用向量数据库（如 Qdrant 和 Milvus）之间的主要差异包括： 1. **架构**：pgvector 是 PostgreSQL 的扩展，而专用向量数据库是独立的系统 |
+| 2 | partial | 0.2182 | E1 | **集成成本**：pgvector 的集成成本较低，因为可以复用现有的 PostgreSQL 栈 |
 | 3 | unsupported | 0.0224 | E1 | 而专用向量数据库需要独立部署和维护 |
-| 4 | supported | 0.2840 | E1 | **查询吞吐量**：pgvector 的查询吞吐量中等（约百级 QPS），而专用向量数据库如 Qdrant 的吞吐量可超过 4000 RPS |
-| 5 | partial | 0.1899 | E1 | **过滤检索**：pgvector 需要额外调优以支持过滤检索，性能较差 |
-| 6 | unsupported | 0.0285 | E1 | 专用向量数据库原生支持过滤检索，性能更好 |
-| 7 | supported | 0.2265 | E1 | **事务/ACID 支持**：pgvector 完整支持事务和 ACID，而专用向量数据库的支持有限或不支持 |
-| 8 | partial | 0.1953 | E1 | **量化压缩**：pgvector 的量化压缩能力有限，而专用向量数据库支持多种压缩方式 |
-| 9 | partial | 0.1990 | E1 | **适用规模**：pgvector 适用于小于 1000 万向量的场景，而专用向量数据库适合亿级向量 |
-| 10 | partial | 0.1899 | E1 | **运维复杂度**：pgvector 的运维复杂度较低，因为与业务数据同库 |
-| 11 | unsupported | 0.0224 | E1 | 专用向量数据库的运维复杂度中等到高 |
-| 12 | supported | 0.2367 | E1 | **结论**：如果已经使用 PostgreSQL 且向量规模小于 500 万，pgvector 是合理选择 |
-| 13 | supported | 0.2243 | E1 | 如果向量规模大且对检索性能有严格要求，则应选择专用向量数据库如 Qdrant 或 Milvus [E1] |
+| 4 | supported | 0.2838 | E1 | **查询吞吐量**：pgvector 的查询吞吐量中等（约百级 QPS），而专用向量数据库如 Qdrant 可以达到高于 4000 RPS |
+| 5 | partial | 0.2048 | E1 | **过滤检索**：pgvector 需要额外调优以支持过滤检索，而专用向量数据库原生支持此功能，性能更佳 |
+| 6 | supported | 0.2227 | E1 | **事务支持**：pgvector 完整支持 ACID 事务，而专用向量数据库的事务支持有限或不支持 |
+| 7 | partial | 0.1953 | E1 | **量化压缩**：pgvector 的量化压缩能力有限，而专用向量数据库支持多种量化方法 |
+| 8 | partial | 0.1987 | E1 | **适用规模**：pgvector 适用于小于 1000 万向量的场景，而专用向量数据库可以处理亿级向量 |
+| 9 | partial | 0.1899 | E1 | **运维复杂度**：pgvector 的运维复杂度较低，因为与业务数据同库 |
+| 10 | unsupported | 0.0281 | E1 | 专用向量数据库的运维复杂度中等到高，因为是独立组件 |
+| 11 | supported | 0.2367 | E1 | **结论**：如果已经使用 PostgreSQL 且向量规模小于 500 万，pgvector 是合理选择 |
+| 12 | supported | 0.2243 | E1 | 如果向量规模大且对检索性能有严格要求，则应选择专用向量数据库如 Qdrant 或 Milvus [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1114,22 +1121,22 @@
 - level: high
 - level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；unsupported_claim_count=3；unsupported_claim；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=2；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,191.925
+- offline_total_ms: 1,287.017
 - model_call_count: 1
 - prompt_tokens: 378
-- completion_tokens: 47
-- total_tokens: 425
-- estimated_cost_usd: 0.000085
+- completion_tokens: 52
+- total_tokens: 430
+- estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `145641b00374b21ec2e0cfe27063d4fa86288c3a9dda5001a3e2f99e4b1ccd42`
-- answer_sha256: `bf32a24a251f6d2cc4a144c6d876f953cffcdc0dde3acc158bee4915ef766012`
+- source_cer_sha256: `511938c661e22e4681de3ce8c5d7233d3c3409525f2ed77a3a91b474899ad2c0`
+- answer_sha256: `89a91b481266fefee6608985c3096d359cb001407511ced5f641835f668c4bc8`
 
 ## q17 — Qdrant 的内存存储和磁盘存储有什么差异？
 
@@ -1140,7 +1147,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DECOMPOSE
 - confidence: high
-- reason: 问题明确比较了 Qdrant 的内存存储和磁盘存储，且信息可验证。
+- reason: 问题明确要求比较 Qdrant 的内存存储和磁盘存储，且信息可验证。
 
 ### 证据充分性
 
@@ -1160,7 +1167,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/06_Qdrant架构.md | internal/06_Qdrant架构.md@965-1773#50531ea08667 | 0.7167 |
+| E1 | internal/06_Qdrant架构.md | internal/06_Qdrant架构.md@965-1773#50531ea08667 | 0.0328 |
 
 #### 引用 claim 明细
 
@@ -1169,10 +1176,10 @@
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
 | 1 | partial | 0.2157 | E1 | Qdrant 的内存存储和磁盘存储主要有以下差异： 1. **存储模式**： - **内存存储（In-Memory）**：向量完全加载到 RAM 中，提供最快的性能，但内存成本较高 |
-| 2 | partial | 0.1998 | E1 | - **磁盘存储**： - **Mmap（Memory-mapped）**：向量存储在磁盘上，由操作系统进行缓存管理，性能中等，内存友好 |
-| 3 | partial | 0.1907 | E1 | - **On-disk（量化+磁盘）**：量化向量存储在磁盘上，原始向量用于重新排序，性能较慢，但成本最低 [E1] |
-| 4 | unsupported | 0.0156 | E1 | **性能与成本**： - 内存存储提供最佳性能，但成本较高 |
-| 5 | unsupported | 0.0174 | E1 | 而磁盘存储则在性能和成本之间提供不同的平衡，适合不同的使用场景 [E1] |
+| 2 | partial | 0.1974 | E1 | - **磁盘存储**： - **Mmap（Memory-mapped）**：向量存储在磁盘上，由操作系统进行缓存管理，性能中等，成本相对友好 |
+| 3 | partial | 0.1907 | E1 | - **On-disk（量化+磁盘）**：量化向量存储在磁盘上，原始向量用于重新排序，性能较慢，但成本最低 |
+| 4 | unsupported | 0.0177 | E1 | **性能与成本**： - 内存存储提供最佳性能，但成本高 |
+| 5 | unsupported | 0.0173 | E1 | 而磁盘存储则在性能和成本之间提供不同的平衡选择，适合不同的使用场景 [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1190,7 +1197,7 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,469.003
+- offline_total_ms: 1,203.059
 - model_call_count: 1
 - prompt_tokens: 380
 - completion_tokens: 57
@@ -1199,8 +1206,8 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `a166967a1cc7a84a2b40797a372d086402486c998a482205f2a793bd3549e19b`
-- answer_sha256: `c030439532332677979b7b461cb1776f48de5dd4b8d64f6da3f7eb492af0bff2`
+- source_cer_sha256: `4ff4461e11b87b442c29d956eb83eebd9a5e740d2aa2a61470296a714083fb7b`
+- answer_sha256: `9f0078d8cc0d8dcb72358e6df70d7b91c75146ccbd9c0011af440c7fcb81c353`
 
 ## q18 — Recall 和 latency 在向量检索中为什么需要权衡？
 
@@ -1225,13 +1232,13 @@
 - resolved_citation_count: 1
 - unresolved_citation_count: 0
 - claim_count: 5
-- unsupported_claim_count: 0
+- unsupported_claim_count: 1
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E4 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@1558-2289#f09b34881aa0 | 0.6188 |
+| E1 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@1558-2289#f09b34881aa0 | 0.0320 |
 
 #### 引用 claim 明细
 
@@ -1239,11 +1246,11 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1896 | E4 | 在向量检索中，Recall（召回率）和Latency（延迟）之间需要权衡的原因在于，提升Recall通常会导致Latency的增加 |
-| 2 | supported | 0.2542 | E4 | 具体来说： 1. **Recall的提升**：为了提高Recall，可能需要增加查询参数（如HNSW中的ef_search或IVF中的nprobe），这会使得检索过程需要处理更多的数据，从而增加延迟 |
-| 3 | partial | 0.1898 | E4 | **Latency的影响**：当查询参数增大时，虽然可以获得更高的Recall，但相应的查询时间也会显著增加 |
-| 4 | partial | 0.1749 | E4 | 例如，从90%提升到99%的Recall，可能需要2到5倍的查询时间代价 |
-| 5 | partial | 0.1901 | E4 | 因此，在实际应用中，系统需要在Recall和Latency之间找到一个合适的平衡点，以满足业务需求 [E4] |
+| 1 | partial | 0.1917 | E1 | 在向量检索中，Recall（召回率）和Latency（延迟）之间的权衡主要体现在查询性能与检索精度的平衡上 |
+| 2 | supported | 0.2320 | E1 | 具体来说： 1. **高召回率通常伴随高延迟**：在使用HNSW或IVF算法时，增加ef_search或nprobe的值可以提高召回率，但这也会导致查询的延迟增加 |
+| 3 | unsupported | 0.0268 | E1 | 例如，从90%召回率提升到99%可能需要2到5倍的查询时间代价 [E1] |
+| 4 | supported | 0.2588 | E1 | **实际应用中的平衡**：在实际部署中，系统需要通过调整ef_search或nprobe的参数来找到适合业务需求的Recall和Latency之间的平衡点，以满足不同场景下的性能要求 [E1] |
+| 5 | partial | 0.1841 | E1 | 因此，Recall和Latency的权衡是向量检索系统设计中的一个重要考量，影响着系统的响应速度和检索效果 |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1253,25 +1260,25 @@
 
 ### 综合不确定性（派生信号）
 
-- level: medium
-- level_meaning: 不确定性/风险中等
+- level: high
+- level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=1；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,119.594
+- offline_total_ms: 2,516.072
 - model_call_count: 1
 - prompt_tokens: 377
-- completion_tokens: 52
-- total_tokens: 429
+- completion_tokens: 53
+- total_tokens: 430
 - estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `3b6759e69e940093455093e4caf5ead4a95f301da44bfafd290234f70d82d03c`
-- answer_sha256: `31a77e963a3ae8c03efdae21807d99c0a101611f4d8fb578ac093a0208edeeb9`
+- source_cer_sha256: `6b89f838d541dffb4f068f427dc18405fd903e8bab76f087a9d4104c5bb19d5a`
+- answer_sha256: `81804a2e303740731a34387f51b6767994a6df88564a46a8a837c9fc8a848644`
 
 ## q19 — kube-scheduler 在 Kubernetes 集群里负责什么？
 
@@ -1282,7 +1289,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DIRECT
 - confidence: high
-- reason: 问题明确询问 kube-scheduler 的职责，且该信息是公开可验证的。
+- reason: 问题明确询问 kube-scheduler 的职责，且信息可验证。
 
 ### 证据充分性
 
@@ -1302,7 +1309,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@0-1115#f0413c5d9c86 | 0.6031 |
+| E4 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@1115-1993#1114731f27b6 | 0.0161 |
 
 #### 引用 claim 明细
 
@@ -1310,9 +1317,9 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1255 | E1 | kube-scheduler 在 Kubernetes 集群中负责将待调度的 Pod 分配到合适的工作节点上 |
-| 2 | partial | 0.1399 | E1 | 它根据资源需求、调度策略和其他约束条件，选择最合适的节点来运行这些 Pod，从而实现负载均衡和资源优化 |
-| 3 | partial | 0.1611 | E1 | 这个过程是 Kubernetes 控制平面的一部分，确保集群中的资源得到有效利用和管理 [E1] |
+| 1 | partial | 0.1366 | E4 | kube-scheduler 在 Kubernetes 集群中负责将新建的 Pod 分配到合适的 Node |
+| 2 | partial | 0.2143 | E4 | 它的调度决策依据包括资源请求/限制、节点亲和性、Pod 反亲和性以及 Taints/Tolerations |
+| 3 | supported | 0.2720 | E4 | 具体流程为：新 Pod 创建后，API Server 将其写入 etcd，kube-scheduler 监听并选择最优 Node，然后将 Pod 绑定到该 Node，最后目标 Node 的 kubelet 启动容器 [E4] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1330,17 +1337,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,119.292
+- offline_total_ms: 2,887.517
 - model_call_count: 1
 - prompt_tokens: 375
-- completion_tokens: 55
-- total_tokens: 430
-- estimated_cost_usd: 0.000089
+- completion_tokens: 51
+- total_tokens: 426
+- estimated_cost_usd: 0.000087
 
 ### 追溯信息
 
-- source_cer_sha256: `e2bf9a53517c9eaa664d41027e5b32445d520453c1ee4bf56e3587343cd61d3e`
-- answer_sha256: `56830edac1a103a39ab2919853e85cdd4343cbc75cee39708bae3754dfb589b8`
+- source_cer_sha256: `3b25be7a0934e02e083782421adde7f699be1c557a59a2e1e042347da288be11`
+- answer_sha256: `582518a2fe33a447b0253c9744f5512aec22bba1dd51abae3b11809932803864`
 
 ## q20 — 连续批处理（Continuous Batching）和传统静态批处理有什么区别？
 
@@ -1351,7 +1358,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DECOMPOSE
 - confidence: high
-- reason: 问题明确要求比较两个具体的处理方式，且信息可验证。
+- reason: 问题明确要求比较两个批处理方式，且信息可验证。
 
 ### 证据充分性
 
@@ -1361,17 +1368,18 @@
 ### 引用证据支撑（规则）
 
 - citation_support_label: partial
-- citation_count: 1
-- resolved_citation_count: 1
+- citation_count: 2
+- resolved_citation_count: 2
 - unresolved_citation_count: 0
-- claim_count: 4
-- unsupported_claim_count: 0
+- claim_count: 8
+- unsupported_claim_count: 4
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
 | E1 | internal/10_模型服务层vLLM架构.md | internal/10_模型服务层vLLM架构.md@773-1705#c76695ac0bf6 | 0.0492 |
+| E2 | internal/10_模型服务层vLLM架构.md | internal/10_模型服务层vLLM架构.md@0-773#e9b11b984010 | 0.0474 |
 
 #### 引用 claim 明细
 
@@ -1380,9 +1388,13 @@
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
 | 1 | partial | 0.1852 | E1 | 连续批处理（Continuous Batching）与传统静态批处理的主要区别在于请求处理的方式和效率 |
-| 2 | partial | 0.1860 | E1 | **请求处理方式**： - **传统静态批处理**：所有请求同时开始，必须等到最长的请求完成后才能接受新请求，这导致短请求完成后GPU处于空闲状态，利用率低 |
-| 3 | partial | 0.1681 | E1 | - **连续批处理**：在处理请求时，一旦某个请求完成，可以立即插入新的请求，而无需等待其他请求完成，从而保持GPU的持续满载 |
-| 4 | partial | 0.1630 | E1 | **效率**： - 连续批处理显著提升了吞吐量，相比传统方法，吞吐量提升可达14到24倍，确保GPU始终处于高效工作状态 [E1] |
+| 2 | unsupported | 0.0467 | E1 | **请求处理方式**： - **传统静态批处理**：所有请求同时开始，必须等到最长的请求完成后才能接受新请求 |
+| 3 | partial | 0.1498 | E2 | 这导致短请求完成后GPU空闲，利用率低 [E1] |
+| 4 | unsupported | 0.0346 | E1 | - **连续批处理**：在处理请求时，一旦某个请求完成，可以立即插入新的请求，而无需等待其他请求完成 |
+| 5 | partial | 0.1428 | E1 | 这使得GPU始终保持满载，提高了吞吐量 [E1] |
+| 6 | partial | 0.1595 | E2 | **效率**： - 传统静态批处理的GPU利用率较低，导致吞吐量不足 |
+| 7 | unsupported | 0.0232 | E1 | - 连续批处理显著提升了吞吐量，相比传统方法，吞吐量提升可达14到24倍 [E2] |
+| 8 | unsupported | 0.0150 | E1 | 因此，连续批处理在处理效率和资源利用上优于传统静态批处理 |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1392,25 +1404,25 @@
 
 ### 综合不确定性（派生信号）
 
-- level: medium
-- level_meaning: 不确定性/风险中等
+- level: high
+- level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；partial_support
+- missing_info: citation_support_label=partial；unsupported_claim_count=4；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 991.731
+- offline_total_ms: 1,066.657
 - model_call_count: 1
 - prompt_tokens: 380
-- completion_tokens: 49
-- total_tokens: 429
+- completion_tokens: 48
+- total_tokens: 428
 - estimated_cost_usd: 0.000086
 
 ### 追溯信息
 
-- source_cer_sha256: `5f79ab2d4ed7680f35620005b9574908ad3595b9292511c974392b865a8e646b`
-- answer_sha256: `83aeb5442cfcfc8828d9eb7a49c166bbbb3c9da9f5bb93288ddfd9d57ec6a609`
+- source_cer_sha256: `1c574c1303622ca473f5bf21ac18c1ff345e494de956386a323d0f1fc11db53f`
+- answer_sha256: `d9c4ec6a84cfbb1fff09f0d9d800dcd10429dcc7ee8c6866ca60e383eb7808c1`
 
 ## q21 — RAG 中 embedding 和 retrieval 之间的关系是什么？
 
@@ -1430,19 +1442,12 @@
 
 ### 引用证据支撑（规则）
 
-- citation_support_label: partial
-- citation_count: 2
-- resolved_citation_count: 2
+- citation_support_label: no_evidence
+- citation_count: 0
+- resolved_citation_count: 0
 - unresolved_citation_count: 0
-- claim_count: 10
-- unsupported_claim_count: 3
-
-#### 最终实际 Citations
-
-| evidence_id | source_id | chunk_id | retrieval_score |
-| :-- | :-- | :-- | --: |
-| E2 | internal/01_RAG基础原理.md | internal/01_RAG基础原理.md@871-1622#b2cf54881a08 | 0.6534 |
-| E1 | external/16-vector-embedding-datawhale.md | external/16-vector-embedding-datawhale.md@804-1403#9a28961b0343 | 0.6795 |
+- claim_count: 6
+- unsupported_claim_count: 6
 
 #### 引用 claim 明细
 
@@ -1450,16 +1455,12 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.2220 | E2 | 在 RAG（检索增强生成）中，embedding 和 retrieval 之间的关系是密切相关的 |
-| 2 | supported | 0.2886 | E1 | 具体来说，embedding 在 RAG 的“检索”环节中起着核心作用，主要体现在以下几个方面： 1. **索引和检索阶段**：在 RAG 流程中，embedding 发生在两个关键阶段：索引阶段和检索阶段 |
-| 3 | unsupported | 0.0211 | E1 | 在索引阶段，文档块被转换为向量并存入向量数据库 |
-| 4 | unsupported | 0.0207 | E1 | 在检索阶段，用户的查询也被转换为向量，以便进行相似度匹配 |
-| 5 | partial | 0.2107 | E1 | 这两个阶段必须使用同一个 embedding 模型，以确保向量空间的一致性，从而保证检索结果的有效性 [E2] |
-| 6 | supported | 0.2838 | E1 | **语义检索的基础**：RAG 的检索环节通常依赖于基于 embedding 的语义搜索 |
-| 7 | unsupported | 0.0679 | E1 | 用户的问题和文档块的向量通过相似度计算来确定相关性，选取相似度最高的文档块作为上下文信息，供大语言模型生成最终答案 [E1] |
-| 8 | supported | 0.2237 | E1 | **检索质量的决定因素**：embedding 的质量直接影响检索的准确性和相关性 |
-| 9 | supported | 0.2428 | E1 | 一个优秀的 embedding 模型能够更好地捕捉问题与文档之间的深层语义联系，从而提高检索的效果 [E1] |
-| 10 | supported | 0.2711 | E1 | 综上所述，embedding 是 RAG 中检索过程的基础，确保了信息的有效检索和生成的准确性 |
+| 1 | no_evidence | 0.0000 | not_observed | 在RAG（检索增强生成）中，embedding和retrieval之间的关系是密切相关的 |
+| 2 | no_evidence | 0.0000 | not_observed | 具体来说，embedding在RAG流程中主要用于将文档和用户查询转换为向量，以便进行语义检索 |
+| 3 | no_evidence | 0.0000 | not_observed | 其流程如下： 1. **离线索引构建**：在索引阶段，文档被切分并通过embedding模型转换为向量，存入向量数据库中 |
+| 4 | no_evidence | 0.0000 | not_observed | **在线查询检索**：当用户提出问题时，使用同样的embedding模型将用户的问题转换为向量 |
+| 5 | no_evidence | 0.0000 | not_observed | **相似度计算**：在向量数据库中，计算用户问题向量与文档块向量的相似度，以检索相关文档 |
+| 6 | no_evidence | 0.0000 | not_observed | 因此，embedding的质量直接影响retrieval的效果，优秀的embedding模型能够更准确地捕捉问题与文档之间的语义关系，从而提高检索的准确性和相关性【E1】【E4】 |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1472,12 +1473,12 @@
 - level: high
 - level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；unsupported_claim_count=3；unsupported_claim；partial_support
+- missing_info: citation_support_label=no_evidence；unsupported_claim_count=6；no_evidence
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 945.578
+- offline_total_ms: 1,422.970
 - model_call_count: 1
 - prompt_tokens: 375
 - completion_tokens: 47
@@ -1486,8 +1487,8 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `abf38bb4174c0b6b3cc2939cac2eb899e9ed3cf77ab4c06e8cfa2e65cabb8e02`
-- answer_sha256: `67c6331e16006e46418a3f26bf701cf83e0c59513cedd84c0640ffce483a743f`
+- source_cer_sha256: `cc25f0886b322b9424329d04cdfb945fe0e13a887437d4754c61ee8f7a98857a`
+- answer_sha256: `a5e1a01d000638612e699f8f409cd052881b5057492092a581921a201192a66a`
 
 ## q22 — 为什么 chunk 不是越大越好？
 
@@ -1518,8 +1519,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@1391-1768#5c5d7a6818b5 | 0.6013 |
-| E2 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@0-685#1411d3bdb16d | 0.4755 |
+| E2 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@1391-1768#5c5d7a6818b5 | 0.0313 |
+| E3 | external/14-text-chunking-datawhale.md | external/14-text-chunking-datawhale.md@597-1194#e880edf6d91e | 0.0306 |
 
 #### 引用 claim 明细
 
@@ -1527,11 +1528,11 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.2241 | E1 | Chunk 不是越大越好，主要原因包括： 1. **检索精度下降**：过大的 chunk 会导致相关内容被噪声稀释，从而降低检索的准确性 [E1] |
-| 2 | partial | 0.2060 | E1 | **上下文不完整**：过小的 chunk 则可能导致上下文信息丢失，影响理解 [E2] |
-| 3 | supported | 0.3182 | E1 | **占用更多 LLM context 窗口**：过大的 chunk 会占用更多的上下文窗口，限制可处理的信息量 [E1] |
-| 4 | supported | 0.2843 | E1 | **embedding 向量语义混杂**：过大的 chunk 可能导致 embedding 向量的语义混合，影响后续的检索和生成质量 [E1] |
-| 5 | partial | 0.1865 | E1 | 因此，选择合适的 chunk 大小是确保系统性能的关键 |
+| 1 | supported | 0.2238 | E2 | Chunk 不是越大越好的原因主要有以下几点： 1. **检索精度下降**：过大的 chunk 会导致相关内容被噪声稀释，从而降低检索的精度 [E2] |
+| 2 | partial | 0.2091 | E2 | **上下文不完整**：如果 chunk 过小，可能会导致上下文信息丢失，影响理解 [E2] |
+| 3 | partial | 0.1900 | E2 | **信息损失**：在嵌入过程中，较大的 chunk 会导致信息稀释，关键细节可能被模糊化，降低语义表示的质量 [E3] |
+| 4 | supported | 0.3149 | E2 | **占用更多资源**：过大的 chunk 会占用更多的 LLM context 窗口，限制可用的上下文信息 [E2] |
+| 5 | supported | 0.2619 | E2 | 因此，合理的 chunk 大小应在128到512 tokens之间，根据任务类型进行调整 [E2] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1549,17 +1550,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,056.054
+- offline_total_ms: 2,572.405
 - model_call_count: 1
 - prompt_tokens: 372
-- completion_tokens: 49
-- total_tokens: 421
-- estimated_cost_usd: 0.000085
+- completion_tokens: 50
+- total_tokens: 422
+- estimated_cost_usd: 0.000086
 
 ### 追溯信息
 
-- source_cer_sha256: `9b62fb7fd9104d9a1ac36f93b1d0deb66c44fdb6ef168a41276ccb2b40f419e7`
-- answer_sha256: `2a038722afcad718262544ee357b8229f9992c4726b0bb20c3ee214791c0d751`
+- source_cer_sha256: `172beb1dd17de723913a06a694b35bdd61a844e63083530f93e841661daad025`
+- answer_sha256: `36ee8b6d9e24d64d4156ae50f01b41426a627761f4a20faaf3c7bd60da618380`
 
 ## q23 — 语义分块相比固定分块的主要优势是什么？
 
@@ -1570,7 +1571,7 @@
 - answerability: IN_SCOPE
 - route_candidate: DECOMPOSE
 - confidence: high
-- reason: 问题明确比较了语义分块和固定分块，且可以提供清晰的优势对比。
+- reason: 问题明确比较了语义分块和固定分块，且可以提供可验证的优势信息。
 
 ### 证据充分性
 
@@ -1591,7 +1592,7 @@
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
 | E1 | external/12-检索增强生成 (RAG) 技术综述-syhya.md | external/12-检索增强生成 (RAG) 技术综述-syhya.md@1237-1865#09b01ab21d25 | 0.0481 |
-| E4 | external/14-text-chunking-datawhale.md | external/14-text-chunking-datawhale.md@4068-4870#3e955ac4ad9e | 0.0323 |
+| E5 | internal/02_Chunk策略.md | internal/02_Chunk策略.md@0-685#1411d3bdb16d | 0.0315 |
 
 #### 引用 claim 明细
 
@@ -1599,9 +1600,9 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | unsupported | 0.0218 | E1 | 语义分块相比固定分块的主要优势在于其能够根据文本的语义内涵进行切分，从而保持每个分块的内部语义一致性 |
-| 2 | unsupported | 0.0304 | E1 | 这种方法在语义主题发生显著变化的地方进行切分，避免了固定大小分块可能导致的语义单元被切断的问题 |
-| 3 | unsupported | 0.0356 | E4 | 固定大小分块在处理超长段落时只能发出警告并保留，而语义分块则能够更灵活地调整分块策略，以确保信息的完整性和上下文的准确性 [E1][E4] |
+| 1 | unsupported | 0.0321 | E5 | 语义分块相比固定分块的主要优势在于它能够保留语义完整性，确保每个分块的内容自洽，减少歧义 |
+| 2 | unsupported | 0.0330 | E5 | 这是因为语义分块是根据文本的语义边界进行切分，而固定分块则可能在语义中间切断，导致信息的丢失和检索精度的降低 |
+| 3 | unsupported | 0.0243 | E5 | 此外，语义分块能够更好地适应不同类型的文本，尤其适用于学术文档和法律合同等需要高语义一致性的场景 [E1][E5] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1619,17 +1620,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,252.789
+- offline_total_ms: 1,596.158
 - model_call_count: 1
 - prompt_tokens: 376
-- completion_tokens: 57
-- total_tokens: 433
-- estimated_cost_usd: 0.000091
+- completion_tokens: 56
+- total_tokens: 432
+- estimated_cost_usd: 0.000090
 
 ### 追溯信息
 
-- source_cer_sha256: `c218940763fc588d2d7398c466bfbf4da5d96a06a7cd1da81f1c9384f26e2e78`
-- answer_sha256: `3c7fc5d8397f56ab74f95b47a3388857be9db8a8d2ef1bb815265780b099bfd1`
+- source_cer_sha256: `8f9944c2b717677768da4008c51d78390fa33637c10e0e57185c5f62717e1aa3`
+- answer_sha256: `a94305d0356f6a3f97e7cb91d06feb1c44ef453690ace1fa8a83a743cfa72cf4`
 
 ## q24 — Embedding 在 RAG 系统中主要起什么作用？
 
@@ -1660,8 +1661,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | external/16-vector-embedding-datawhale.md | external/16-vector-embedding-datawhale.md@804-1403#9a28961b0343 | 0.7542 |
-| E2 | internal/01_RAG基础原理.md | internal/01_RAG基础原理.md@871-1622#b2cf54881a08 | 0.6469 |
+| E1 | external/16-vector-embedding-datawhale.md | external/16-vector-embedding-datawhale.md@804-1403#9a28961b0343 | 0.0325 |
+| E2 | internal/01_RAG基础原理.md | internal/01_RAG基础原理.md@871-1622#b2cf54881a08 | 0.0318 |
 
 #### 引用 claim 明细
 
@@ -1669,10 +1670,10 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.3213 | E1 | 在 RAG（检索增强生成）系统中，Embedding 主要起到以下作用： 1. **语义检索的基础**：Embedding 是 RAG 流程中“检索”环节的核心，负责将知识库中的文档块和用户查询转换为向量，以便进行相似度计算和检索相关文档块 [E1] |
-| 2 | supported | 0.2237 | E1 | **检索质量的关键**：Embedding 的质量直接影响检索结果的准确性和相关性 |
-| 3 | supported | 0.2446 | E1 | 高质量的 Embedding 模型能够更好地捕捉问题与文档之间的深层语义联系，从而提高最终生成答案的质量 [E1] |
-| 4 | supported | 0.2866 | E1 | **发生在两个阶段**：Embedding 在 RAG 中发生在索引阶段（对文档块计算向量并存入向量库）和检索阶段（对用户查询计算向量以进行相似度匹配），且两个阶段必须使用同一个 Embedding 模型 [E2] |
+| 1 | supported | 0.3070 | E1 | 在RAG（检索增强生成）系统中，Embedding主要起到以下作用： 1. **语义检索的基础**：Embedding用于将知识库中的文档块和用户查询转换为向量，以便进行相似度计算和检索 |
+| 2 | supported | 0.2244 | E1 | 具体流程包括离线索引构建和在线查询检索，确保使用同一Embedding模型以保持向量空间的一致性 [E1][E2] |
+| 3 | supported | 0.2276 | E1 | **决定检索质量的关键**：Embedding的质量直接影响检索结果的准确性和相关性 |
+| 4 | supported | 0.2472 | E1 | 优秀的Embedding模型能够捕捉问题与文档之间的深层语义联系，从而提高最终生成答案的质量 [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1688,17 +1689,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,235.280
+- offline_total_ms: 2,649.676
 - model_call_count: 1
 - prompt_tokens: 375
-- completion_tokens: 52
-- total_tokens: 427
-- estimated_cost_usd: 0.000087
+- completion_tokens: 53
+- total_tokens: 428
+- estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `e1e350847b89ed0453c904dbff6c527d4a4d678080c54524f90a0a0673e35170`
-- answer_sha256: `aa80cb32f6eca47dc67cb71e1234828ed0df83a57e91731ade1d72e8ef1e5aca`
+- source_cer_sha256: `3a4b021c01af14f9ceb10510bba73c0ab856bea639022903265bb615989de0fc`
+- answer_sha256: `b6da4a29b0d1e08516aa4f5c9a7733f1b4d3be71fdd63dc01910639cec4838a5`
 
 ## q25 — RAG 系统中，检索阶段的错误会如何影响最终回答？
 
@@ -1709,7 +1710,7 @@
 - answerability: IN_SCOPE
 - route_candidate: OPEN_MULTI
 - confidence: high
-- reason: 问题明确，涉及检索阶段错误对回答的影响，且可验证。
+- reason: 问题明确，涉及检索阶段错误对最终回答的影响，且可验证。
 
 ### 证据充分性
 
@@ -1729,8 +1730,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@0-639#222aea480737 | 0.6917 |
-| E3 | external/18-GraphRAG-datawhale.md | external/18-GraphRAG-datawhale.md@563-1098#80819dfa2d8d | 0.6353 |
+| E1 | internal/04_RAG失败模式.md | internal/04_RAG失败模式.md@0-639#222aea480737 | 0.0328 |
+| E5 | internal/01_RAG基础原理.md | internal/01_RAG基础原理.md@871-1622#b2cf54881a08 | 0.0161 |
 
 #### 引用 claim 明细
 
@@ -1738,10 +1739,10 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.4371 | E3 | 在RAG系统中，检索阶段的错误会对最终回答产生显著影响，主要体现在以下几个方面： 1. **召回不准（低精度）**：如果检索到的内容与用户问题不相关，LLM将获得噪声上下文，从而生成错误或无意义的回答 [E1] |
-| 2 | unsupported | 0.0548 | E1 | **召回遗漏（低召回）**：当相关文档未被检索到时，系统可能会面临证据不足的情况，虽然应拒绝回答，但可能会产生幻觉作答 [E1] |
-| 3 | supported | 0.3296 | E3 | **检索噪声与幻觉风险**：检索过程返回不相关或部分相关的信息，可能干扰LLM的判断，导致生成与事实不符的内容 [E3] |
-| 4 | unsupported | 0.0162 | E1 | 因此，检索阶段的错误直接影响到生成阶段的质量和准确性，可能导致错误回答或幻觉现象的出现 |
+| 1 | partial | 0.1603 | E1 | 在 RAG 系统中，检索阶段的错误会对最终回答产生显著影响 |
+| 2 | partial | 0.2185 | E1 | 具体来说，检索失败可以分为两种情况： 1. **召回不准（低精度）**：如果检索到的文档片段与用户问题不相关，LLM 将获得噪声上下文，从而生成错误或无意义的回答 [E1] |
+| 3 | unsupported | 0.0550 | E1 | **召回遗漏（低召回）**：当相关文档未被检索到时，系统可能会面临证据不足的情况，理应拒绝回答，但可能会产生幻觉作答 [E1] |
+| 4 | unsupported | 0.0183 | E5 | 因此，检索阶段的准确性直接影响生成阶段的质量，检索错误无法通过生成阶段弥补 [E5] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1754,22 +1755,22 @@
 - level: high
 - level_meaning: 不确定性/风险高
 - reasons: citation_weak
-- missing_info: citation_support_label=partial；unsupported_claim_count=2；unsupported_claim
+- missing_info: citation_support_label=partial；unsupported_claim_count=2；unsupported_claim；partial_support
 - safe_answer_boundary: 部分回答内容未被实际引用证据充分支撑，应作为待核验内容处理。
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,395.354
+- offline_total_ms: 1,242.931
 - model_call_count: 1
 - prompt_tokens: 380
-- completion_tokens: 49
-- total_tokens: 429
-- estimated_cost_usd: 0.000086
+- completion_tokens: 50
+- total_tokens: 430
+- estimated_cost_usd: 0.000087
 
 ### 追溯信息
 
-- source_cer_sha256: `fd871f4389d74896bf870e06e00c288634ae2e07e1bd4e0fb08f67853e06a2b9`
-- answer_sha256: `b2f25f95abe0325df058104e174791587a35b49911b51000b49735aec26da2fa`
+- source_cer_sha256: `c5a3c55c0c11b424b8cd59b1e181b82e4a8e5d6068ef512651808859cd4d304a`
+- answer_sha256: `59de0a4da5e1d1b4f96f6f6615a62711bc4475e9695a52349920da33fa6c8b16`
 
 ## q26 — IVF 索引相比 HNSW 的主要特点是什么？
 
@@ -1790,17 +1791,21 @@
 ### 引用证据支撑（规则）
 
 - citation_support_label: partial
-- citation_count: 1
-- resolved_citation_count: 1
+- citation_count: 5
+- resolved_citation_count: 5
 - unresolved_citation_count: 0
-- claim_count: 7
+- claim_count: 8
 - unsupported_claim_count: 0
 
 #### 最终实际 Citations
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | external/22-milvus-datawhale.md | external/22-milvus-datawhale.md@4526-5014#fc79b169f6c2 | 0.0328 |
+| E1 | internal/05_pgvector原理.md | internal/05_pgvector原理.md@682-1303#b9f400273076 | 0.0469 |
+| E3 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@849-1558#5387fc2754ce | 0.0323 |
+| E5 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@301-849#cca57ff7d9dd | 0.0164 |
+| E2 | external/26-Milvus-索引解释.md | external/26-Milvus-索引解释.md@3003-3627#3603b200df69 | 0.0323 |
+| E4 | external/22-milvus-datawhale.md | external/22-milvus-datawhale.md@4526-5014#fc79b169f6c2 | 0.0315 |
 
 #### 引用 claim 明细
 
@@ -1808,13 +1813,14 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.3238 | E1 | IVF（倒排文件索引）和HNSW（基于图的索引）在原理、优缺点和适用场景上有显著差异： 1. **原理**： - IVF通过聚类将向量分成多个“桶”，查询时先找到最相似的几个桶，再在这些桶内进行精确搜索 |
-| 2 | supported | 0.2588 | E1 | [E1] - HNSW构建一个多层的邻近图，查询时从稀疏图开始，快速定位到目标区域，然后在密集图中进行精确搜索 |
-| 3 | supported | 0.2333 | E1 | [E1] 2. **优缺点**： - IVF的优点是提升检索速度，适合高吞吐量的大规模数据集，但召回率不是100% |
-| 4 | supported | 0.2331 | E1 | [E1] - HNSW的优点是检索速度极快且召回率高，尤其适合高维数据和低延迟查询，但内存占用大且构建时间较长 |
-| 5 | partial | 0.2067 | E1 | [E1] 3. **适用场景**： - IVF适用于通用场景，尤其是需要高吞吐量的情况 |
-| 6 | partial | 0.2155 | E1 | [E1] - HNSW适用于对查询延迟有严格要求的场景，如实时推荐和在线搜索 |
-| 7 | supported | 0.2255 | E1 | [E1] 综上所述，IVF和HNSW各有特点，选择时需根据具体需求进行权衡 |
+| 1 | supported | 0.2517 | E4 | IVF（倒排文件索引）和HNSW（分层可导航小世界图）在以下几个方面有显著区别： 1. **构建方式**： - IVF需要先进行聚类，生成质心后才能建立索引，构建速度较快，但不支持增量插入 [E1][E3] |
+| 2 | partial | 0.1832 | E4 | - HNSW支持边插入边索引，允许动态更新，构建时间较长 [E1][E5] |
+| 3 | partial | 0.1827 | E3 | **内存占用**： - IVF及其变体（如IVFFlat）通常占用较少内存，适合大规模数据集 [E2][E4] |
+| 4 | partial | 0.1793 | E4 | - HNSW由于其图结构，内存占用较高 [E2][E4] |
+| 5 | partial | 0.1808 | E3 | **查询性能**： - IVF的查询速度受`nprobe`参数影响，较高的`nprobe`会增加延迟 [E3][E4] |
+| 6 | partial | 0.2089 | E5 | - HNSW在高召回率下具有较低的查询延迟，查询复杂度为O(log n) [E5] |
+| 7 | supported | 0.2222 | E4 | **适用场景**： - IVF适合通用场景，尤其是需要高吞吐量的大规模数据集 [E4] |
+| 8 | partial | 0.2155 | E4 | - HNSW更适合对查询延迟有严格要求的场景，如实时推荐和在线搜索 [E4] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1832,7 +1838,7 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,110.261
+- offline_total_ms: 1,673.321
 - model_call_count: 1
 - prompt_tokens: 377
 - completion_tokens: 53
@@ -1841,8 +1847,8 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `32bb71fa76a06dba5ed4b7af375e3fcd7e8de4013ab810228d983515f6d2cdf5`
-- answer_sha256: `d801ab673db6d0d7bc87cbaaf778cfd20b67fc1ce777159a4bf96c6053c2dc78`
+- source_cer_sha256: `79c304e16c2b1d187c431a4e4b472a2495550bef36d1e38e3b86c4bddb9d549e`
+- answer_sha256: `6fca7df7ab07bcb8dbe5c9e85a0de44ef7c0a39a94547addad78eb4465323f42`
 
 ## q27 — 为什么 HNSW 通常具有更高的检索精度？
 
@@ -1873,8 +1879,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E4 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@0-301#a87f5dd9a27c | 0.6008 |
-| E5 | internal/06_Qdrant架构.md | internal/06_Qdrant架构.md@464-965#34d2c3600e13 | 0.5888 |
+| E5 | internal/07_向量索引算法HNSW与IVF.md | internal/07_向量索引算法HNSW与IVF.md@301-849#cca57ff7d9dd | 0.0294 |
+| E4 | internal/06_Qdrant架构.md | internal/06_Qdrant架构.md@464-965#34d2c3600e13 | 0.0299 |
 
 #### 引用 claim 明细
 
@@ -1882,9 +1888,9 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | supported | 0.2442 | E5 | HNSW（Hierarchical Navigable Small World）通常具有更高的检索精度，主要是因为其在构建索引时采用了更复杂的图结构和参数配置，这使得它能够在近似最近邻（ANN）搜索中提供更好的结果 |
-| 2 | supported | 0.2441 | E5 | 具体来说，HNSW通过设置较大的参数（如每层最大边数`m`和构建时扩展因子`ef_construct`）来提高索引质量，从而在检索时能够更准确地找到最相似的向量 |
-| 3 | partial | 0.1687 | E4 | 此外，HNSW的设计允许在搜索过程中进行更有效的路径导航，进一步提升了检索的精度和效率 [E4][E5] |
+| 1 | supported | 0.3199 | E4 | HNSW（Hierarchical Navigable Small World）通常具有更高的检索精度，主要是因为其采用了分层图结构，能够在多个层次上进行搜索，从而实现更精细的邻近搜索 |
+| 2 | partial | 0.1727 | E5 | 具体来说，HNSW通过从顶层开始逐层向下搜索，最终在稠密层中进行精确的最近邻查找，这种方法有效提高了召回率和检索精度 [E5] |
+| 3 | partial | 0.1931 | E5 | 此外，HNSW的设计允许通过调整参数（如每个节点的最大连接边数和构建时的候选集大小）来优化索引质量和精度，这使得在保持较高检索速度的同时，能够实现更高的精度 [E4] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1902,17 +1908,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,070.381
+- offline_total_ms: 2,565.020
 - model_call_count: 1
 - prompt_tokens: 378
-- completion_tokens: 54
-- total_tokens: 432
-- estimated_cost_usd: 0.000089
+- completion_tokens: 55
+- total_tokens: 433
+- estimated_cost_usd: 0.000090
 
 ### 追溯信息
 
-- source_cer_sha256: `2b5fbee09bc6293aec3726b0d046886935ab7576a477b50904cfd6668cbda87d`
-- answer_sha256: `f651688c97db8281405f0cd1ec43254a704c93e77f7a69c15448b7fb527859c4`
+- source_cer_sha256: `dbd86e924433da3dbefc8e6207f090e75c4926c1a5c9bc90a7578edd123cdbbe`
+- answer_sha256: `8b3a28459d346ede9538048ad002c8ff308a3f283b620c2fe641d85ed19560a2`
 
 ## q28 — Kubernetes 中 etcd 的作用是什么？
 
@@ -1943,7 +1949,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@0-1115#f0413c5d9c86 | 0.6459 |
+| E1 | internal/08_Kubernetes基础架构.md | internal/08_Kubernetes基础架构.md@0-1115#f0413c5d9c86 | 0.0328 |
 
 #### 引用 claim 明细
 
@@ -1951,8 +1957,8 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1921 | E1 | Kubernetes 中 etcd 的作用是作为一个键值存储（KV存储），用于保存集群的所有配置数据和状态信息 |
-| 2 | partial | 0.1672 | E1 | 它是 Kubernetes 控制平面的一个重要组件，负责存储和管理集群的元数据，确保集群的状态一致性和高可用性 [E1] |
+| 1 | partial | 0.1918 | E1 | 在 Kubernetes 中，etcd 的作用是作为一个键值存储（KV存储），用于保存集群的所有配置数据和状态信息 |
+| 2 | partial | 0.1672 | E1 | 它是 Kubernetes 控制平面的一个重要组件，负责存储和管理集群的状态数据，以确保集群的高可用性和一致性 [E1] |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -1970,17 +1976,17 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,905.395
+- offline_total_ms: 2,056.311
 - model_call_count: 1
 - prompt_tokens: 372
-- completion_tokens: 54
-- total_tokens: 426
+- completion_tokens: 53
+- total_tokens: 425
 - estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `e4f43d68be42b4ff1109e27ac304be5c30d067b7272db77a61d42cbf8b0f6867`
-- answer_sha256: `56c2b44336506be1b0c7dded9f1f07cf0afce3ed6c8343e42363f6d6770d2d81`
+- source_cer_sha256: `3621b0115a4e250ff2ab3e9b65b2e4fd39f4711b381addb46030c23d48642691`
+- answer_sha256: `1b2f75de6977774f9903ca0155cda6fb67a44a7bb6edaa4cc83281189e1b669e`
 
 ## q29 — 在 Multi-AZ 架构中，为什么需要跨 AZ 部署副本？
 
@@ -2011,7 +2017,7 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/09_MultiAZ高可用设计.md | internal/09_MultiAZ高可用设计.md@613-1434#0c95c99cfcbb | 0.6598 |
+| E1 | internal/09_MultiAZ高可用设计.md | internal/09_MultiAZ高可用设计.md@613-1434#0c95c99cfcbb | 0.0328 |
 
 #### 引用 claim 明细
 
@@ -2040,7 +2046,7 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 1,111.197
+- offline_total_ms: 1,986.644
 - model_call_count: 1
 - prompt_tokens: 381
 - completion_tokens: 52
@@ -2049,7 +2055,7 @@
 
 ### 追溯信息
 
-- source_cer_sha256: `eba9aea6984ae739c4bdee88920797f23817f5241d379adcc0c5e737efdd6721`
+- source_cer_sha256: `eb042b95155c75c0549300e8a3a9d439afec47baf61a0a6046410a5e03a2ba1b`
 - answer_sha256: `a4036f9de2ab97581ac96e5db274dc9047ec6dae8038b9d9e0e8517b54846223`
 
 ## q30 — 为什么 KV cache 会成为大模型推理的关键优化点？
@@ -2081,8 +2087,8 @@
 
 | evidence_id | source_id | chunk_id | retrieval_score |
 | :-- | :-- | :-- | --: |
-| E1 | internal/10_模型服务层vLLM架构.md | internal/10_模型服务层vLLM架构.md@0-773#e9b11b984010 | 0.7106 |
-| E4 | external/34-vllm_architecture_cn.md | external/34-vllm_architecture_cn.md@5634-6214#2c8ba4fa9cdf | 0.6013 |
+| E1 | internal/10_模型服务层vLLM架构.md | internal/10_模型服务层vLLM架构.md@0-773#e9b11b984010 | 0.0328 |
+| E2 | external/34-vllm_architecture_cn.md | external/34-vllm_architecture_cn.md@4392-4854#e44bd71a8184 | 0.0299 |
 
 #### 引用 claim 明细
 
@@ -2090,11 +2096,11 @@
 
 | # | label（支撑判定） | best_score | best_evidence_id | claim |
 | --: | :-- | --: | :-- | :-- |
-| 1 | partial | 0.1689 | E1 | KV cache 成为大模型推理的关键优化点，主要是因为它显著降低了计算复杂度 |
-| 2 | supported | 0.2431 | E1 | 在没有 KV cache 的情况下，每生成一个新 token 都需要对所有历史 token 进行 attention 计算，复杂度为 O(n²) |
-| 3 | supported | 0.2493 | E1 | 而使用 KV cache 后，可以缓存历史 token 的 Key 和 Value 矩阵，每次只需计算新 token，复杂度降低为 O(n) [E1] |
-| 4 | partial | 0.1825 | E1 | 此外，传统的 KV cache 存在内存管理低效的问题，导致内存利用率低于 40% |
-| 5 | partial | 0.1886 | E1 | vLLM 通过改进的 KV cache 管理策略，能够更有效地利用内存，提升推理性能 [E1][E4] |
+| 1 | partial | 0.1718 | E1 | KV cache 成为大模型推理的关键优化点，主要是因为它能够显著提高自回归生成过程中的计算效率 |
+| 2 | supported | 0.2646 | E1 | 具体来说，KV cache 通过缓存历史 token 的 Key 和 Value 矩阵，避免了在每次生成新 token 时重复计算所有历史 token，从而将复杂度从 O(n²) 降低到 O(n) [E1] |
+| 3 | partial | 0.2019 | E1 | 然而，传统的 KV cache 管理存在内存利用率低和碎片严重的问题，导致 GPU 显存的浪费 [E1] |
+| 4 | supported | 0.2332 | E1 | vLLM 通过引入 PagedAttention 机制，优化了 KV cache 的内存管理，允许不连续的内存分配，从而提高了内存利用率并减少了碎片 [E2] |
+| 5 | partial | 0.1689 | E1 | 因此，KV cache 的高效管理直接影响到推理性能，是大模型推理中的关键优化点 |
 
 ### 冲突检测（规则型疑似冲突）
 
@@ -2112,14 +2118,14 @@
 
 ### D-full 后置评测耗时与用量
 
-- offline_total_ms: 2,128.816
+- offline_total_ms: 1,146.598
 - model_call_count: 1
 - prompt_tokens: 377
-- completion_tokens: 54
-- total_tokens: 431
-- estimated_cost_usd: 0.000089
+- completion_tokens: 53
+- total_tokens: 430
+- estimated_cost_usd: 0.000088
 
 ### 追溯信息
 
-- source_cer_sha256: `c05cbc499f56d221bfddde6e6893d4227bd0a78ec144cf153a6825a82aacc84d`
-- answer_sha256: `10f106379895a3408a321962e33138be30f52e65fc9f2f5219058cdce08d754e`
+- source_cer_sha256: `ffa4122ee8b8ddb9fc59e6ad3e5340ad4273bc85c98d028e8652325757d86402`
+- answer_sha256: `b1e80047778fec63b8ba048b8db58059cfe18f19ed31adc41fbe8894c71e8502`

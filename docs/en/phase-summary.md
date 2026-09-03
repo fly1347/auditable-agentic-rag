@@ -96,6 +96,18 @@ Phase G assembled the public repository from an empty staging area using a white
 - rewrote README, architecture, evaluation, security, deployment, and limitation documentation;
 - established a clean Git history after clean-install, tests, API/UI, Docker, and release-scan validation.
 
+## 2026-09 Maintenance Update
+
+After release, the project received a focused Retriever and sufficiency-contract maintenance update without adding a new phase:
+
+- the public default Retriever moved from Dense-only to `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`, shared by baseline, orchestrated, API, and evaluation paths;
+- `vector_score`, `rrf_score`, and `rerank_score` are separated; Hybrid-internal Dense/BM25 events and merge traces remain in CER, while retrieval scores are excluded from the structured sufficiency prompt;
+- malformed structured-sufficiency JSON is retried exactly once; a second failure is recorded explicitly as `SufficiencyJudgeOutputParseError` rather than ordinary evidence insufficiency;
+- public contract tests were added for Hybrid RRF, score semantics, sufficiency prompt behavior, and parse retry;
+- Dense / Hybrid comparison and a refreshed dual-profile evaluation were run over the same frozen index. Hybrid CORE Hit@5 improved from 14/27 to 20/27, while q28 / q30 remain explicit known boundaries.
+
+This is maintenance and evidence refresh for the released project; it does not change the historical `A → … → G` phase line.
+
 ## Reusable Methods
 
 The project produced several reusable engineering principles:

@@ -65,7 +65,7 @@ The current system is an enterprise-oriented Agentic RAG reference implementatio
 [DIRECT / DECOMPOSE]
        │
        ▼
-[ACL-eligible TopK] → [RRF] → [Optional Rerank] → [ACL Recheck]
+[ACL-eligible candidates] → [Dense Top10 + BM25 Top10] → [RRF(k=60) → Top5] → [Optional Rerank] → [ACL Recheck]
        │
        ▼
 [EvidenceSnapshot] → [Sufficiency Judge]
@@ -142,7 +142,9 @@ The public online path keeps only two answerable routes:
 
 Routing uses deterministic rules rather than an additional LLM classifier. If subquery generation fails, execution falls back to retrieval with the original question so that one planning failure does not fail the entire request.
 
-Base retrieval uses dense-vector TopK with public default `topk=5`. Results from DECOMPOSE and second-round multi-query retrieval are deduplicated by `chunk_id` and fused with RRF, preserving different query perspectives instead of letting one score scale dominate.
+For each query, the public default retrieval path is `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`. Dense and BM25 operate over the same chunks from the current immutable index and the same source-level ACL-visible set; RRF uses ranks rather than directly comparing incompatible score scales. DECOMPOSE and second-round retrieval then apply another RRF layer across query / round results after `chunk_id` deduplication, preserving lexical recall, semantic recall, and different query perspectives.
+
+Dense cosine values remain `vector_score`; RRF fusion values are recorded separately as `rrf_score`; `rerank_score` is written only when a reranker actually runs. RRF scores are never presented as vector similarity. Hybrid-internal Dense/BM25 retrieval events and the merge trace remain visible in CER. Retrieval scores are used for ranking and audit but are not sent to the structured sufficiency judge, so the judge does not treat incomparable retrieval scores as evidence strength.
 
 CrossEncoder reranking is optional and disabled by default; the candidate model is `BAAI/bge-reranker-base`. A reranker can only reorder retrieved candidates and cannot recover core evidence that never entered the candidate pool. Recall should therefore be validated before deciding whether additional model loading, latency, and resource cost are justified.
 
@@ -155,9 +157,9 @@ The two profiles share retrieval, ACL, fusion, EvidenceSnapshot, prompt, generat
 | baseline | binary sufficiency | Default interaction, higher coverage, lower control complexity |
 | orchestrated | structured EvidencePacket judgment | Stricter evidence explanation, audit, and refusal control |
 
-When the Judge classifies evidence as insufficient, the system allows a query rewrite and one R2. R2 performs DIRECT retrieval with the rewritten query, unions it with R1 results, applies RRF fusion, rechecks ACL, and judges sufficiency again. If the second result is still insufficient, the system refuses. Judge failures also fail closed.
+When the Judge classifies evidence as insufficient, the system allows a query rewrite and one R2. R2 runs the same Hybrid retrieval with the rewritten query, unions it with R1 results, applies RRF fusion, rechecks ACL, and judges sufficiency again. If the second result is still insufficient, the system refuses. Judge failures also fail closed. If the structured judge returns malformed JSON, the parser retries exactly once; a second parse failure raises `SufficiencyJudgeOutputParseError` instead of being disguised as ordinary `INSUFFICIENT`, and both real provider attempts are recorded in CER.
 
-“At most once” is intentional. It keeps incremental cost, latency, and state space predictable and prevents endless paraphrase loops. In the frozen evaluation, the system can already detect some evidence gaps, but second-round recovery remains weak; the next improvement target is candidate recall and rewrite strategy rather than simply adding more loops.
+“At most once” is intentional. It keeps incremental cost, latency, and state space predictable and prevents endless paraphrase loops. In the current Hybrid frozen evaluation, q17 and q27 recover successfully on R2, while q28 and q30 do not. Bounded recovery is therefore observably effective but still unstable; the next targets are candidate recall, gap-type-driven rewriting, and sufficiency calibration rather than simply adding more loops.
 
 ### 5.6 Prompt, Generation, and Citation
 
@@ -226,7 +228,7 @@ The public repository includes the complete implementation, sample data, and hum
 | :-- | :-- | :-- |
 | Local BGE + local index | Data control, easy debugging, low external dependency | Large-scale ANN, distributed expansion, online incremental updates |
 | structure-first + token hard budget | Structural integrity for current corpus, verifiable embedding inputs | More implementation complexity; arbitrarily long structures may still split |
-| Dense Top5, rerank disabled by default | Simple mainline, controlled resource and latency cost | Recall ceiling on complex terminology, multi-hop, and weak-semantic candidates |
+| Hybrid RRF (Dense Top10 + BM25 Top10 → Top5), rerank disabled by default | Combines semantic and lexical recall without cross-retriever score calibration | Adds local BM25 work; RRF can still reward shared wrong consensus and does not replace semantic reranking |
 | Rule routing + fixed two subqueries | Predictable, testable, bounded extra calls | Less planning freedom for complex tasks |
 | At most one R2 | Bounded cost and state space | Multi-round autonomous search and stronger recovery |
 | baseline / orchestrated dual profiles | Observe coverage, grounding, and cost trade-offs over one shared foundation | No claim that one single mode is globally optimal |
@@ -242,7 +244,7 @@ Reevaluate the current reference implementation when any of the following become
 - Corpus size or concurrency makes O(N) scanning incompatible with latency targets: migrate to a production vector database with metadata filtering.
 - Tenant or regulatory requirements demand physical isolation: separate indexes, keys, and lifecycles by tenant/security domain.
 - Document types expand to PDF, Office, images, or scans: add parsing, OCR, layout reconstruction, and quality gates.
-- Core evidence repeatedly fails to enter the candidate pool: improve query strategy, hybrid retrieval, and candidate recall before reranking.
+- Core evidence repeatedly fails to enter the candidate pool or remains poorly ranked after RRF: improve query expansion, candidate recall, and fusion diagnostics before evaluating reranking.
 - Second-round recovery remains insufficient under measurement: introduce gap-type-aware rewrite, multi-query retrieval, or bounded tool retrieval instead of unbounded loops.
 - Prompts may receive substantially more evidence: implement generator-tokenizer-aware hard budgeting, truncation policy, and regression tests.
 - API must support multiple workers or HA: move JSONL execution records, audit, and logs to storage with concurrency and durability guarantees.

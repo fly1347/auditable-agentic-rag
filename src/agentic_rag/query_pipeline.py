@@ -27,6 +27,7 @@ from dataclasses import asdict, is_dataclass
 
 from agentic_rag.control.sufficiency import (
     SufficiencyJudgeError,
+    SufficiencyJudgeOutputParseError,
     SufficiencyJudgeTimeout,
     judge_sufficiency_with_evidence_packet,
     judge_sufficiency_with_model_call,
@@ -49,6 +50,7 @@ from agentic_rag.retrieve.reranker import (
     compute_top1_topk_gap,
     should_trigger_selective_rerank,
 )
+from agentic_rag.retrieve.hybrid_rrf import HybridRRFRetriever
 from agentic_rag.retrieve.retriever import Retriever
 from agentic_rag.retrieve.fusion import FusionInput, retrieval_event, rrf_fuse
 from agentic_rag.types import AgenticStep, Answer, Chunk, RetrievalResult
@@ -156,6 +158,35 @@ def _model_call_to_usage_dict(call: Any, stage: str) -> Dict[str, Any]:
     row["role"] = str(row.get("role") or "sufficiency_judge")
     row["stage"] = str(stage)
     return row
+
+
+def _model_calls_to_usage_dicts(call: Any, stage: str) -> List[Dict[str, Any]]:
+    """展开 structured judge 的格式重试调用，保证每次真实 provider attempt 都进入 CER。"""
+    if call is None:
+        return []
+
+    if isinstance(call, (list, tuple)):
+        calls = list(call)
+    else:
+        retry_calls = list(getattr(call, "retry_model_calls", []) or [])
+        calls = retry_calls + [call]
+
+    rows: List[Dict[str, Any]] = []
+    attempt_count = len(calls)
+    for attempt, item in enumerate(calls, start=1):
+        row = _model_call_to_usage_dict(item, stage=stage)
+        if not row:
+            continue
+        row["provider_attempt"] = int(attempt)
+        row["provider_attempt_count"] = int(attempt_count)
+        if getattr(item, "error_message", None):
+            row["error_message"] = str(getattr(item, "error_message"))
+        if attempt_count > 1 and attempt == attempt_count:
+            row["structured_output_retry_recovered"] = bool(
+                getattr(item, "structured_output_retry_recovered", False)
+            )
+        rows.append(row)
+    return rows
 
 
 def _sufficiency_error_model_call(exc: Exception, elapsed_ms: float, stage: str) -> Dict[str, Any]:
@@ -989,6 +1020,8 @@ def _sufficiency_judge_error_reason(exc: SufficiencyJudgeError) -> str:
     """把 judge 异常映射为 Phase C 业务拒答原因。"""
     if isinstance(exc, SufficiencyJudgeTimeout):
         return "sufficiency_judge_timeout"
+    if isinstance(exc, SufficiencyJudgeOutputParseError):
+        return "sufficiency_judge_output_parse_error"
     return "sufficiency_judge_unavailable"
 
 
@@ -1106,17 +1139,19 @@ def _retrieve_once(
         round_id=int(round_id),
         duration_ms=float(elapsed_ms),
     )
-    object.__setattr__(rr, "retrieval_events", [event])
-    object.__setattr__(
-        rr,
-        "merge_trace",
-        {
-            "strategy": "single_query",
-            "dedupe_key": "chunk_id",
-            "subquery_quota_enabled": False,
-            "final_order": list(event["candidates"]),
-        },
-    )
+    prior_events = list(getattr(rr, "retrieval_events", []) or [])
+    object.__setattr__(rr, "retrieval_events", [*prior_events, event])
+    if not dict(getattr(rr, "merge_trace", {}) or {}):
+        object.__setattr__(
+            rr,
+            "merge_trace",
+            {
+                "strategy": "single_query",
+                "dedupe_key": "chunk_id",
+                "subquery_quota_enabled": False,
+                "final_order": list(event["candidates"]),
+            },
+        )
     return rr, elapsed_ms
 
 
@@ -1372,7 +1407,7 @@ def query(
     sufficiency_mode: str = "binary",
 ) -> Answer:
     t0_total: float = time.time()
-    retriever: Retriever = retriever_instance or Retriever()
+    retriever: Any = retriever_instance or HybridRRFRetriever(Retriever())
     trusted_user: UserContext = _user_context_from_payload(user_context)
     agentic_steps: List[AgenticStep] = []
     normalized_sufficiency_mode = str(sufficiency_mode).strip().lower()
@@ -1528,14 +1563,20 @@ def query(
             max_prompt_chunks=int(max_chunks_in_prompt),
         )
         signal_flags["first_sufficiency_contract"] = suff_detail_1
-        signal_flags["sufficiency_model_calls"].append(
-            _model_call_to_usage_dict(suff_call_1, stage="legacy_first_sufficiency")
+        signal_flags["sufficiency_model_calls"].extend(
+            _model_calls_to_usage_dicts(suff_call_1, stage="legacy_first_sufficiency")
         )
     except SufficiencyJudgeError as exc:
         suff_ms_1 = float((time.time() - t0_suff_1) * 1000.0)
-        signal_flags["sufficiency_model_calls"].append(
-            _sufficiency_error_model_call(exc, elapsed_ms=float(suff_ms_1), stage="legacy_first_sufficiency")
-        )
+        error_calls = list(getattr(exc, "model_calls", []) or [])
+        if error_calls:
+            signal_flags["sufficiency_model_calls"].extend(
+                _model_calls_to_usage_dicts(error_calls, stage="legacy_first_sufficiency")
+            )
+        else:
+            signal_flags["sufficiency_model_calls"].append(
+                _sufficiency_error_model_call(exc, elapsed_ms=float(suff_ms_1), stage="legacy_first_sufficiency")
+            )
         ans = _reject_for_sufficiency_judge_error(
             query=str(query),
             rr=rr,
@@ -1683,14 +1724,20 @@ def query(
                 max_prompt_chunks=int(max_chunks_in_prompt),
             )
             signal_flags["second_sufficiency_contract"] = suff_detail_2
-            signal_flags["sufficiency_model_calls"].append(
-                _model_call_to_usage_dict(suff_call_2, stage="legacy_second_sufficiency")
+            signal_flags["sufficiency_model_calls"].extend(
+                _model_calls_to_usage_dicts(suff_call_2, stage="legacy_second_sufficiency")
             )
         except SufficiencyJudgeError as exc:
             suff_ms_2 = float((time.time() - t0_suff_2) * 1000.0)
-            signal_flags["sufficiency_model_calls"].append(
-                _sufficiency_error_model_call(exc, elapsed_ms=float(suff_ms_2), stage="legacy_second_sufficiency")
-            )
+            error_calls = list(getattr(exc, "model_calls", []) or [])
+            if error_calls:
+                signal_flags["sufficiency_model_calls"].extend(
+                    _model_calls_to_usage_dicts(error_calls, stage="legacy_second_sufficiency")
+                )
+            else:
+                signal_flags["sufficiency_model_calls"].append(
+                    _sufficiency_error_model_call(exc, elapsed_ms=float(suff_ms_2), stage="legacy_second_sufficiency")
+                )
             ans = _reject_for_sufficiency_judge_error(
                 query=str(query),
                 rr=rr2,

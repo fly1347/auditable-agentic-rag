@@ -12,6 +12,7 @@ The public release defaults to:
 - generator: OpenRouter `openai/gpt-4o-mini`
 - evidence sufficiency judge: DeepSeek `deepseek-v4-flash`
 - embedding: local `BAAI/bge-small-zh-v1.5`
+- retrieval: `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`
 - corpus: `sample_data/corpus/`
 - fallback: disabled
 
@@ -60,7 +61,7 @@ See [System Architecture](docs/en/architecture.md) for the full design.
 | :-- | :-- |
 | Structure-aware chunking | Markdown structure-first splitting, largest-fit packing, hard budgeting with the actual tokenizer |
 | Local index | Immutable builds + atomic `current.json` pointer |
-| Retrieval | DIRECT / DECOMPOSE, RRF fusion, optional second retrieval round |
+| Retrieval | Hybrid RRF: Dense Top10 + BM25 Top10 → RRF(k=60) → Top5; DIRECT / DECOMPOSE; optional second retrieval round |
 | Authorization | Source-level ACL, deny-by-default, filtering before TopK |
 | Evidence | EvidenceSnapshot / PromptSnapshot / `[E#]` citation contract |
 | Execution control | baseline binary sufficiency; orchestrated structured sufficiency |
@@ -140,27 +141,27 @@ See [Deployment Notes](docs/en/deployment-notes.md) for complete startup, valida
 
 ## Evaluation Summary
 
-The frozen project-specific in-domain regression set contains 30 questions. Both profiles use the same corpus, index, and first-round original-query Top5 results.
+The frozen project-specific in-domain regression set contains 30 questions. Both profiles use the same corpus, index, and Hybrid RRF retrieval configuration.
 
 | Observation | baseline | orchestrated |
 | :-- | --: | --: |
-| ANSWERED / REFUSED | 29 / 1 | 25 / 5 |
+| ANSWERED / REFUSED | 29 / 1 | 27 / 3 |
 | DIRECT / DECOMPOSE | 24 / 6 | 24 / 6 |
-| Online tokens | 119,756 | 188,062 |
-| Estimated online cost | $0.035468 | $0.073791 |
-| Sum of per-question service time | 124.334 s | 167.940 s |
+| Online tokens | 123,627 | 190,941 |
+| Estimated online cost | $0.036531 | $0.073633 |
+| Sum of per-question service time | 137.674 s | 194.988 s |
 
-`orchestrated` additionally blocks q06, q19, q27, and q28 because the final prompt lacks the core answer-bearing evidence for those questions. It strengthens evidence control while reducing answer coverage and increasing online cost by 108%. Second-round retrieval recovered 0/5 cases in this run.
+Hybrid `baseline` produces valid answers for all 29 answerable questions. `orchestrated` recovers q17 and q27 on the second retrieval round, then ultimately refuses q28 and q30. q28 remains an answer-bearing retrieval gap; q30 is better explained as an over-strict / provider-variable structured-sufficiency judgment. The online cost of `orchestrated` is about 2.02× `baseline`.
 
-RAGAS on the 25 questions shared by both profiles:
+RAGAS on the 27 questions shared by both profiles:
 
 | metric | baseline | orchestrated | delta |
 | :-- | --: | --: | --: |
-| Context Precision | 0.8734 | 0.9066 | +0.0331 |
-| Faithfulness | 0.9691 | 0.9422 | -0.0269 |
-| Answer Relevancy | 0.8673 | 0.8303 | -0.0370 |
+| Context Precision | 0.8539 | 0.8197 | -0.0342 |
+| Faithfulness | 0.9633 | 0.9562 | -0.0071 |
+| Answer Relevancy | 0.8585 | 0.8468 | -0.0118 |
 
-B2 is a `derived_in_domain_regression` set intended for in-domain regression, evidence-chain validation, and paired profile comparison. It does not represent held-out generalization or real-world business accuracy.
+In the direct Dense-only → Hybrid RRF retrieval probe, manually confirmed CORE Hit@5 improves from 14/27 to 20/27. This is the primary evidence supporting the public default Retriever change. B2 is a `derived_in_domain_regression` set intended for in-domain regression, evidence-chain validation, and paired profile comparison. It does not represent held-out generalization or real-world business accuracy.
 
 See the [Evaluation Report](docs/en/evaluation-report.md) for the full conclusions and [`artifacts/evaluation/`](artifacts/evaluation/README.md) for per-question and workflow reports.
 
@@ -180,7 +181,7 @@ See [Security Baseline](docs/en/security-baseline.md).
 ```text
 src/agentic_rag/       Online implementation and canonical execution structures
 eval/                  Core evaluation entry points and sample regression data
-tests/                 Four core governance and audit contract test files
+tests/                 Core governance, Hybrid retrieval, and sufficiency contract tests
 sample_data/           Public original demo corpus
 policy/                Sample source ACL registry
 docker/                Containerized API/UI entry points

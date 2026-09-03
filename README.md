@@ -12,6 +12,7 @@
 - 生成模型：OpenRouter `openai/gpt-4o-mini`
 - 证据充分性 Judge：DeepSeek `deepseek-v4-flash`
 - Embedding：本地 `BAAI/bge-small-zh-v1.5`
+- 检索：`Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`
 - 语料：`sample_data/corpus/`
 - fallback：关闭
 
@@ -60,7 +61,7 @@ D-full classifier、Citation Support、Conflict 和 Uncertainty 位于后置评�
 | :-- | :-- |
 | 结构化切分 | Markdown structure-first、largest-fit、真实 tokenizer 硬预算 |
 | 本地索引 | 不可变 build + 原子 `current.json` 指针 |
-| 检索 | DIRECT / DECOMPOSE、RRF 融合、可选二轮检索 |
+| 检索 | Hybrid RRF：Dense Top10 + BM25 Top10 → RRF(k=60) → Top5；DIRECT / DECOMPOSE；可选二轮检索 |
 | 权限 | source-level ACL，deny-by-default，TopK 前过滤 |
 | 证据 | EvidenceSnapshot / PromptSnapshot / `[E#]` 引用合同 |
 | 执行控制 | baseline binary sufficiency；orchestrated structured sufficiency |
@@ -140,27 +141,27 @@ streamlit run src/agentic_rag/ui/streamlit_app.py
 
 ## 评测摘要
 
-冻结项目专用同域回归评测集包含 30 题。两套 profile 使用相同语料、索引和第一轮 original-query Top5。
+冻结项目专用同域回归评测集包含 30 题。两套 profile 使用相同语料、索引和 Hybrid RRF 检索配置。
 
 | 观察项 | baseline | orchestrated |
 | :-- | --: | --: |
-| ANSWERED / REFUSED | 29 / 1 | 25 / 5 |
+| ANSWERED / REFUSED | 29 / 1 | 27 / 3 |
 | DIRECT / DECOMPOSE | 24 / 6 | 24 / 6 |
-| 在线 Token | 119,756 | 188,062 |
-| 在线估算成本 | $0.035468 | $0.073791 |
-| 题级服务耗时累计 | 124.334 s | 167.940 s |
+| 在线 Token | 123,627 | 190,941 |
+| 在线估算成本 | $0.036531 | $0.073633 |
+| 题级服务耗时累计 | 137.674 s | 194.988 s |
 
-orchestrated 额外拦截 q06、q19、q27、q28：四题均缺少核心 answer-bearing evidence。它提高了证据控制强度，同时降低回答覆盖率，并使在线成本增加 108%。本轮二轮检索 recovery 为 0/5。
+Hybrid baseline 对 29/29 道应回答题均形成有效答案；orchestrated 在 q17、q27 上完成二轮恢复，在 q28、q30 上最终拒答。q28 仍是 answer-bearing retrieval gap；q30 更接近 structured sufficiency 过严 / provider 波动。orchestrated 在线成本约为 baseline 的 2.02 倍。
 
-RAGAS 共同 25 题：
+RAGAS 共同 27 题：
 
 | metric | baseline | orchestrated | delta |
 | :-- | --: | --: | --: |
-| Context Precision | 0.8734 | 0.9066 | +0.0331 |
-| Faithfulness | 0.9691 | 0.9422 | -0.0269 |
-| Answer Relevancy | 0.8673 | 0.8303 | -0.0370 |
+| Context Precision | 0.8539 | 0.8197 | -0.0342 |
+| Faithfulness | 0.9633 | 0.9562 | -0.0071 |
+| Answer Relevancy | 0.8585 | 0.8468 | -0.0118 |
 
-B2 属于 `derived_in_domain_regression`，用于同域回归、证据链验证与 profile 配对比较，不代表 held-out 泛化能力或真实业务准确率。
+Dense-only → Hybrid RRF 的直接检索 probe 中，人工确认的 CORE Hit@5 从 14/27 提升到 20/27；该结果是公开默认 Retriever 替换的主要依据。B2 属于 `derived_in_domain_regression`，用于同域回归、证据链验证与 profile 配对比较，不代表 held-out 泛化能力或真实业务准确率。
 
 完整结论见 [评测报告](docs/evaluation-report.md)，逐题与工作流报告见 [`artifacts/evaluation/`](artifacts/evaluation/README.md)。
 
@@ -180,7 +181,7 @@ B2 属于 `derived_in_domain_regression`，用于同域回归、证据链验证�
 ```text
 src/agentic_rag/       在线实现与统一事实结构
 eval/                  核心评测入口与 sample regression
-tests/                 4 个核心治理与审计 contract tests
+tests/                 核心治理、Hybrid 检索与 sufficiency contract tests
 sample_data/           公开原创演示语料
 policy/                sample source ACL registry
 docker/                API/UI 容器化入口

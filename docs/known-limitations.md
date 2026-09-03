@@ -1,52 +1,51 @@
 # 已知限制
 
-## 1. 核心证据仍有漏召回
+## 1. Hybrid RRF 仍存在 answer-bearing 排名边界
 
-q06、q19、q27、q28 的核心 answer-bearing evidence 未进入 Top10 和最终 Prompt。
+当前公开默认已从 Dense-only 切换为 `Dense Top10 + BM25 Top10 → RRF(k=60) → Top5`。人工精确标注的 CORE Hit@5 从 14/27 提升到 20/27，q06、q19 等旧 Dense 缺口已经修复；但 q28 仍暴露出真实检索边界。
 
-- baseline 依赖模型参数知识给出可读答案；
-- orchestrated 识别证据不足并拒答。
+q28 的 etcd 详解片段在 Dense 与 BM25 单路都不够靠前，RRF 又会奖励两路共同靠前的概览块，最终真正 answer-bearing chunk 没进入 EvidencePacket。RRF 因此改善了平均可达性，但不具备语义判别能力，也不能保证单路正确候选一定压过双路错误共识。
 
-当前主要检索问题是：答案存在于语料中，但真正承载答案的段落可达性不足。Kubernetes、HNSW、表格、ASCII 架构图和跨段机制说明更容易出现该问题。
+### 可能改进
 
-### 主要归因
+- 为 q28 一类题继续记录 Dense / BM25 / RRF 的 candidate rank 与融合贡献；
+- 对 entity / exact-term / mechanism 问题尝试更有约束的 query expansion；
+- 比较更大的候选池与可选 reranker，但保持 strict evidence gate 独立；
+- 将 answer-bearing reachability 继续作为独立回归信号，而不是只看母文档 Full@K。
 
-- 当前以 dense retrieval 为主，问题措辞与答案段落表达不一致时，核心证据排名容易下降；
-- TopK 候选池未包含核心证据时，RRF 和 rerank 只能重排已有候选，无法恢复池外证据；
-- 二轮 rewrite 多为近义复述，查询扩展能力有限。
+## 2. 二轮检索已经能恢复，但稳定性仍不足
 
-### 可选改进方向
+Hybrid `orchestrated` 在应回答的一轮不足题中：
 
-- 对四道漏召回题测试 dense + sparse/BM25 混合检索；
-- 比较不同 Embedding 模型对核心证据的 TopK 排名；
-- 扩大初始候选池，再执行 RRF 与 rerank；
-- 将二轮 rewrite 改为关键词、实体和答案约束驱动的查询扩展；
-- 建立专项回归，分别记录核心证据的 Top10、Top20 与最终 Prompt 可达性。
+```text
+q17 → recovery
+q27 → recovery
+q28 → refuse
+q30 → refuse
+```
 
-## 2. 二轮检索能发现问题，恢复能力较弱
+因此当前应回答题的二轮 recovery 为 2/4。q17、q27 证明 bounded rewrite + R2 已能真实恢复部分证据缺口；q28 仍是检索问题。q30 首轮已经有较直接 KV Cache 证据，却仍被 structured judge 连续判为不足，更接近 sufficiency calibration / provider variation 的 false negative。
 
-orchestrated 触发 5 次二轮检索，recovery 为 0/5。rewrite 多数属于近义复述，没有带来新的核心证据。
+后续若继续优化，应优先区分“真正缺证据”和“Judge 要求过严”，而不是简单增加循环次数。
 
-当前 Agentic 链路已经具备发现证据不足的能力；自主修复证据缺口仍是主要短板。
-
-## 3. 两套 profile 存在明确取舍
+## 3. 两个 profile 仍是明确取舍
 
 | 维度 | baseline | orchestrated |
 | :-- | :-- | :-- |
-| 应回答题覆盖 | 29/29 | 25/29 |
-| 证据控制 | 较宽松 | 严格 |
-| 在线 Token | 119,756 | 188,062 |
-| 在线估算成本 | $0.035468 | $0.073791 |
+| 应回答题覆盖 | 29/29 | 27/29 |
+| 证据控制 | 更宽松 | 严格、结构化 |
+| 在线 Token | 123,627 | 190,941 |
+| 在线估算成本 | $0.036531 | $0.073633 |
 
-当前没有一个 profile 同时获得高覆盖、强 grounding、低成本和高恢复率。两套 profile 是场景选择，不是简单的高低配关系。
+当前没有单一 profile 同时实现最高覆盖、最严格证据边界、最低成本和稳定恢复。两者仍是场景选择，而不是简单的低配 / 高配关系。
 
-## 4. B2 只能证明同域回归稳定
+## 4. B2 只能证明同域回归稳定性
 
-B2 只有 30 题，且题目与冻结私有语料高度同域。它能够验证：
+B2 只有 30 题，且与冻结私有语料高度同域。它能够验证：
 
 - 冻结语料与配置下的行为稳定性；
 - 关键控制、证据路径和成本可复核；
-- Splitter 修正与双 profile 差异。
+- Splitter 修正、Hybrid Retriever 与双 profile 差异。
 
 它不能单独证明：
 
@@ -59,9 +58,10 @@ B2 只有 30 题，且题目与冻结私有语料高度同域。它能够验证�
 
 ## 5. 评测信号仍有边界
 
-- baseline 在线 security snapshot 未观测，`hard_gate_complete=0/30`；
+- q06、q27 的机器 expected-evidence gate 与人工 precise-evidence 诊断未完全对齐；本轮没有把专项人工标注悄悄升级为正式 gate；
+- q21 baseline 出现单题 citation-validity fail，应作为引用层独立回归点保留；
+- q30 暴露 structured sufficiency 的过严 / provider 波动风险；
 - 回答质量分档尚未按 exact answer SHA 导入统一 release gate；
-- q26 的机器 evidence gate 与人工答案 A 结论未完全对齐；
 - Citation Support 主要是字符/词面规则，语义蕴含能力有限；
 - Conflict 缺少独立 gold set，最终 0 conflicts 只表示规则未触发；
 - RAGAS 依赖 LLM judge，受模型版本、随机性和 provider 波动影响；
@@ -70,6 +70,7 @@ B2 只有 30 题，且题目与冻结私有语料高度同域。它能够验证�
 ## 6. 当前仍是本地参考实现
 
 - `LocalVectorStore` 使用本地文件与内存 O(N) 点积；
+- Hybrid BM25 复用当前 chunk 集并在进程内构建，不是面向大规模语料的生产 sparse index；
 - API 建议单 worker；
 - CER、audit 和 service logs 使用本地 JSONL；
 - 认证使用静态 token；

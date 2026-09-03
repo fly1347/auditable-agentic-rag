@@ -8,17 +8,17 @@
 
 - profile: `orchestrated`
 - 去重模型调用: `0`
-- 三类模型调用合计: **351 calls**
-- 三类 Token 合计: **504,907**
-- 三类估算费用合计: **$0.149048**
-- 三类观测任务耗时累计: **1258.239 s（20.97 min）**
+- 三类模型调用合计: **373 calls**
+- 三类 Token 合计: **534,140**
+- 三类估算费用合计: **$0.153556**
+- 三类观测任务耗时累计: **1328.897 s（22.15 min）**
 
 | 类别 | 统计对象 | records / tasks | model calls | time_sum | total tokens | estimated cost |
 | :-- | :-- | --: | --: | --: | --: | --: |
-| 在线主链 | 在线回答生产与主链控制调用 | 30 | 71 | 167.940 s（2.80 min） | 188,062 | $0.073791 |
-| D-full 后置评测 | D-full classifier + 本地 citation/conflict/uncertainty 后置诊断 | 30 | 30 | 56.858 s | 12,866 | $0.002647 |
-| RAGAS 离线质量评测 | Context Precision / Faithfulness / Answer Relevancy 指标任务 | 75 | 250 | 1033.441 s（17.22 min） | 303,979 | $0.072610 |
-| **三类合计** | 以上三类互不重叠账目合计 | 135 | 351 | 1258.239 s（20.97 min） | 504,907 | $0.149048 |
+| 在线主链 | 在线回答生产与主链控制调用 | 30 | 73 | 194.988 s（3.25 min） | 190,941 | $0.073633 |
+| D-full 后置评测 | D-full classifier + 本地 citation/conflict/uncertainty 后置诊断 | 30 | 30 | 58.934 s | 12,849 | $0.002637 |
+| RAGAS 离线质量评测 | Context Precision / Faithfulness / Answer Relevancy 指标任务 | 81 | 270 | 1074.975 s（17.92 min） | 330,350 | $0.077286 |
+| **三类合计** | 以上三类互不重叠账目合计 | 141 | 373 | 1328.897 s（22.15 min） | 534,140 | $0.153556 |
 
 ### records / tasks 口径
 
@@ -33,18 +33,18 @@
 
 | 类别 | calls 占比 | Token 占比 | 费用占比 | time_sum 占比 |
 | :-- | --: | --: | --: | --: |
-| 在线主链 | 20.2% | 37.2% | 49.5% | 13.3% |
-| D-full 后置评测 | 8.5% | 2.5% | 1.8% | 4.5% |
-| RAGAS 离线质量评测 | 71.2% | 60.2% | 48.7% | 82.1% |
+| 在线主链 | 19.6% | 35.7% | 48.0% | 14.7% |
+| D-full 后置评测 | 8.0% | 2.4% | 1.7% | 4.4% |
+| RAGAS 离线质量评测 | 72.4% | 61.8% | 50.3% | 80.9% |
 
 ## 3. Token 与费用明细
 
 | 类别 | prompt | completion | reasoning | cached | cache write | total tokens | priced / unpriced | estimated cost |
 | :-- | --: | --: | --: | --: | --: | --: | :-- | --: |
-| 在线主链 | 176,477 | 11,585 | not_observed | not_observed | not_observed | 188,062 | 71/0 | $0.073791 |
-| D-full 后置评测 | 11,272 | 1,594 | 0 | 0 | 0 | 12,866 | 30/0 | $0.002647 |
-| RAGAS 离线质量评测 | 269,544 | 34,435 | not_observed | 214,656 | not_observed | 303,979 | 250/0 | $0.072610 |
-| **三类合计** | 457,293 | 47,614 | not_observed | not_observed | not_observed | 504,907 | 351/0 | $0.149048 |
+| 在线主链 | 178,815 | 12,126 | not_observed | not_observed | not_observed | 190,941 | 73/0 | $0.073633 |
+| D-full 后置评测 | 11,272 | 1,577 | 0 | 0 | 0 | 12,849 | 30/0 | $0.002637 |
+| RAGAS 离线质量评测 | 294,369 | 35,981 | not_observed | 234,112 | not_observed | 330,350 | 270/0 | $0.077286 |
+| **三类合计** | 484,456 | 49,684 | not_observed | not_observed | not_observed | 534,140 | 373/0 | $0.153556 |
 
 ## 4. 观测完整性
 
@@ -52,9 +52,9 @@
 
 | 类别 | time | reasoning tokens | cached tokens | cache-write tokens | cost |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| 在线主链 | 完整 | 部分缺失（35/71 calls 未观测） | 部分缺失（60/71 calls 未观测） | 部分缺失（60/71 calls 未观测） | 完整 |
+| 在线主链 | 完整 | 部分缺失（35/73 calls 未观测） | 部分缺失（62/73 calls 未观测） | 部分缺失（62/73 calls 未观测） | 完整 |
 | D-full 后置评测 | 完整 | 完整 | 完整 | 完整 | 完整 |
-| RAGAS 离线质量评测 | 完整 | 部分缺失（250/250 calls 未观测） | 完整 | 部分缺失（250/250 calls 未观测） | 完整 |
+| RAGAS 离线质量评测 | 完整 | 部分缺失（270/270 calls 未观测） | 完整 | 部分缺失（270/270 calls 未观测） | 完整 |
 
 ## 5. 机器底账
 

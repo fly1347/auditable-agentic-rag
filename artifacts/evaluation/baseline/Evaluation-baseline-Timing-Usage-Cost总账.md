@@ -9,16 +9,16 @@
 - profile: `baseline`
 - 去重模型调用: `0`
 - 三类模型调用合计: **387 calls**
-- 三类 Token 合计: **483,096**
-- 三类估算费用合计: **$0.154081**
-- 三类观测任务耗时累计: **1345.800 s（22.43 min）**
+- 三类 Token 合计: **490,507**
+- 三类估算费用合计: **$0.134604**
+- 三类观测任务耗时累计: **1157.814 s（19.30 min）**
 
 | 类别 | 统计对象 | records / tasks | model calls | time_sum | total tokens | estimated cost |
 | :-- | :-- | --: | --: | --: | --: | --: |
-| 在线主链 | 在线回答生产与主链控制调用 | 30 | 67 | 124.334 s（2.07 min） | 119,756 | $0.035468 |
-| D-full 后置评测 | D-full classifier + 本地 citation/conflict/uncertainty 后置诊断 | 30 | 30 | 47.012 s | 12,858 | $0.002642 |
-| RAGAS 离线质量评测 | Context Precision / Faithfulness / Answer Relevancy 指标任务 | 87 | 290 | 1174.454 s（19.57 min） | 350,482 | $0.115970 |
-| **三类合计** | 以上三类互不重叠账目合计 | 147 | 387 | 1345.800 s（22.43 min） | 483,096 | $0.154081 |
+| 在线主链 | 在线回答生产与主链控制调用 | 30 | 67 | 137.674 s（2.29 min） | 123,627 | $0.036531 |
+| D-full 后置评测 | D-full classifier + 本地 citation/conflict/uncertainty 后置诊断 | 30 | 30 | 60.130 s（1.00 min） | 12,847 | $0.002636 |
+| RAGAS 离线质量评测 | Context Precision / Faithfulness / Answer Relevancy 指标任务 | 87 | 290 | 960.011 s（16.00 min） | 354,033 | $0.095437 |
+| **三类合计** | 以上三类互不重叠账目合计 | 147 | 387 | 1157.814 s（19.30 min） | 490,507 | $0.134604 |
 
 ### records / tasks 口径
 
@@ -33,18 +33,18 @@
 
 | 类别 | calls 占比 | Token 占比 | 费用占比 | time_sum 占比 |
 | :-- | --: | --: | --: | --: |
-| 在线主链 | 17.3% | 24.8% | 23.0% | 9.2% |
-| D-full 后置评测 | 7.8% | 2.7% | 1.7% | 3.5% |
-| RAGAS 离线质量评测 | 74.9% | 72.5% | 75.3% | 87.3% |
+| 在线主链 | 17.3% | 25.2% | 27.1% | 11.9% |
+| D-full 后置评测 | 7.8% | 2.6% | 2.0% | 5.2% |
+| RAGAS 离线质量评测 | 74.9% | 72.2% | 70.9% | 82.9% |
 
 ## 3. Token 与费用明细
 
 | 类别 | prompt | completion | reasoning | cached | cache write | total tokens | priced / unpriced | estimated cost |
 | :-- | --: | --: | --: | --: | --: | --: | :-- | --: |
-| 在线主链 | 114,467 | 5,289 | not_observed | not_observed | not_observed | 119,756 | 67/0 | $0.035468 |
-| D-full 后置评测 | 11,272 | 1,586 | 0 | 0 | 0 | 12,858 | 30/0 | $0.002642 |
-| RAGAS 离线质量评测 | 311,341 | 39,141 | not_observed | 170,624 | not_observed | 350,482 | 290/0 | $0.115970 |
-| **三类合计** | 437,080 | 46,016 | not_observed | not_observed | not_observed | 483,096 | 387/0 | $0.154081 |
+| 在线主链 | 118,344 | 5,283 | not_observed | not_observed | not_observed | 123,627 | 67/0 | $0.036531 |
+| D-full 后置评测 | 11,272 | 1,575 | 0 | 0 | 0 | 12,847 | 30/0 | $0.002636 |
+| RAGAS 离线质量评测 | 315,959 | 38,074 | not_observed | 220,288 | not_observed | 354,033 | 290/0 | $0.095437 |
+| **三类合计** | 445,575 | 44,932 | not_observed | not_observed | not_observed | 490,507 | 387/0 | $0.134604 |
 
 ## 4. 观测完整性
 

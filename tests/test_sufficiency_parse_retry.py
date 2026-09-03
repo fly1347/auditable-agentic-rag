@@ -1,4 +1,13 @@
-"""作用：锁定 structured sufficiency 非法 JSON 的显式失败与单次格式重试行为。"""
+"""
+程序作用：
+验证 structured sufficiency 遇到非法 JSON 时只做一次真实格式重试，并在持续失败时显式 fail-close。
+
+整体结构：
+1）构造最小 ModelCallRecord 与 EvidencePacket；
+2）验证 malformed JSON 会抛出 SufficiencyJudgeOutputParseError；
+3）验证首次解析失败、第二次成功时只重试一次并保留重试调用事实；
+4）验证连续两次解析失败时携带两次 provider call 并抛出类型化错误。
+"""
 
 from __future__ import annotations
 
@@ -16,6 +25,7 @@ from agentic_rag.workflow.workflow_state import EvidenceItem, EvidencePacket
 
 
 def _call() -> ModelCallRecord:
+    """构造 structured sufficiency 测试共用的最小模型调用记录。"""
     return ModelCallRecord(
         role="sufficiency_judge",
         identity=ModelIdentity(provider="deepseek", configured_model="deepseek-v4-flash"),
@@ -28,6 +38,7 @@ def _call() -> ModelCallRecord:
 
 
 def _packet() -> EvidencePacket:
+    """构造包含一条 Prompt-visible 证据的最小 EvidencePacket。"""
     return EvidencePacket(
         items=[
             EvidenceItem(
@@ -42,11 +53,15 @@ def _packet() -> EvidencePacket:
 
 
 class StructuredSufficiencyParseRetryTests(unittest.TestCase):
+    """覆盖 structured sufficiency JSON 解析、单次重试与显式失败契约。"""
+
     def test_extract_json_object_rejects_malformed_json(self) -> None:
+        """验证 malformed JSON 会被解析层明确拒绝。"""
         with self.assertRaises(SufficiencyJudgeOutputParseError):
             _extract_json_object('{"verdict" "SUFFICIENT"}')
 
     def test_retry_once_when_first_output_is_malformed(self) -> None:
+        """验证首次格式错误后仅重试一次，并记录恢复事实。"""
         first = _call()
         second = _call()
         responses = [
@@ -72,6 +87,7 @@ class StructuredSufficiencyParseRetryTests(unittest.TestCase):
         self.assertTrue(getattr(final_call, "structured_output_retry_recovered", False))
 
     def test_second_malformed_output_raises_typed_error_with_both_calls(self) -> None:
+        """验证第二次仍失败时抛出类型化错误并保留两次模型调用。"""
         first = _call()
         second = _call()
         responses = [

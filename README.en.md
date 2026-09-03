@@ -72,13 +72,13 @@ See [System Architecture](docs/en/architecture.md) for the full design.
 
 ## System Design
 
-The project is not only a composition of RAG components; key choices are placed behind verifiable engineering constraints. Corpus data and indexing remain local-first; ACL filtering happens before TopK; Agentic behavior is bounded to DIRECT / DECOMPOSE plus at most one second retrieval round; and EvidenceSnapshot, PromptSnapshot, and CER separately record what was retrieved, what the model actually saw, and what happened during one execution. Evaluation, audit, and cost reports derive from frozen execution facts instead of reconstructing context later.
+The project uses clear modular boundaries across the RAG pipeline and places key choices behind verifiable engineering constraints. Corpus data and indexing remain local-first; ACL filtering happens before TopK; Agentic behavior is bounded to DIRECT / DECOMPOSE plus at most one second retrieval round; and EvidenceSnapshot, PromptSnapshot, and CER separately record what was retrieved, what the model actually saw, and what happened during one execution. Evaluation, audit, and cost reports derive from frozen execution facts instead of reconstructing context later.
 
 See [System Design and Technology Choices](docs/en/system-design.md) for the full design rationale, alternatives, and re-evaluation conditions.
 
 ## Model Selection and Deployment
 
-Models are selected by role rather than by a single leaderboard. The project started with local Qwen / Ollama, then compared local inference, fixed evaluation sets, judge replacements, RAGAS compatibility, latency, and cost before converging on the current split: local BGE for embeddings, GPT-4o-mini as the default answer generator, and DeepSeek Flash for online sufficiency judgment. Public fallback is disabled so model identity, failure causes, and cost remain explicit.
+Models are selected by role using multi-source evaluation and engineering metrics. The project started with local Qwen / Ollama, then compared local inference, fixed evaluation sets, judge replacements, RAGAS compatibility, latency, and cost before converging on the current split: local BGE for embeddings, GPT-4o-mini as the default answer generator, and DeepSeek Flash for online sufficiency judgment. Public fallback is disabled so model identity, failure causes, and cost remain explicit.
 
 See [Model Selection and Inference Deployment Evolution](docs/en/model-selection.md) for the full experiments, model comparisons, API-versus-local deployment trade-offs, and re-selection criteria.
 

@@ -1,4 +1,13 @@
-"""作用：锁定公开默认 Hybrid RRF 的参数、分数语义与审计轨迹。"""
+"""
+程序作用：
+锁定公开默认 Hybrid RRF 的固定参数、RRF 分数语义及 Dense / BM25 双通道审计轨迹。
+
+整体结构：
+1）用轻量替身构造 Dense、BM25 与本地 store；
+2）验证 HybridRRFRetriever 的融合结果、内部 retrieval events 与 merge trace；
+3）验证 query pipeline 保留 Hybrid 内部轨迹；
+4）验证 RuntimeContainer 默认按固定参数封装 Dense 为 Hybrid RRF。
+"""
 
 from __future__ import annotations
 
@@ -19,7 +28,10 @@ from agentic_rag.types import Chunk, RetrievalResult
 
 
 class _FakeStore:
+    """提供 Hybrid RRF 合同测试所需的最小语料存储替身。"""
+
     def __init__(self) -> None:
+        """初始化固定的三条测试语料。"""
         self.rows = [
             {"chunk_id": "c1", "source_id": "s1", "doc_hash": "h1", "text": "alpha", "offset_start": 0, "offset_end": 5, "metadata": {}},
             {"chunk_id": "c2", "source_id": "s2", "doc_hash": "h2", "text": "beta", "offset_start": 0, "offset_end": 4, "metadata": {}},
@@ -27,18 +39,24 @@ class _FakeStore:
         ]
 
     def count(self) -> int:
+        """返回测试语料条数。"""
         return len(self.rows)
 
     def sample(self, n: int):
+        """按请求数量返回固定语料样本。"""
         return list(self.rows[:n])
 
 
 class _FakeDense:
+    """提供固定 Dense 排序结果，隔离真实向量检索依赖。"""
+
     def __init__(self) -> None:
+        """初始化测试 store 与默认 TopK 配置。"""
         self.store = _FakeStore()
         self.cfg = SimpleNamespace(topk=5)
 
     def run(self, query: str, topk: int, user_context=None) -> DenseRetrievalResult:
+        """返回固定 Dense hits 与 TopK 前权限已生效的访问策略。"""
         hits = [
             RetrievalHit("c1", "s1", 0.9, "alpha", 0, 5, {}),
             RetrievalHit("c2", "s2", 0.8, "beta", 0, 4, {}),
@@ -56,15 +74,22 @@ class _FakeDense:
 
 
 class _FakeBM25:
+    """提供固定 BM25 分数，验证双通道融合排序。"""
+
     def __init__(self, corpus) -> None:
+        """保存 Hybrid retriever 传入的测试语料。"""
         self.corpus = corpus
 
     def get_scores(self, tokens):
+        """返回固定 BM25 分数序列。"""
         return [0.1, 2.0, 0.5]
 
 
 class HybridRRFContractTests(unittest.TestCase):
+    """覆盖公开默认 Hybrid RRF 的参数、轨迹与容器装配契约。"""
+
     def test_hybrid_rrf_returns_rrf_score_and_two_channel_trace(self) -> None:
+        """验证 Hybrid 返回 RRF 分数并保留 Dense / BM25 双通道轨迹。"""
         fake_jieba = types.ModuleType("jieba")
         fake_jieba.lcut = lambda text: [text]
         fake_rank_bm25 = types.ModuleType("rank_bm25")
@@ -89,6 +114,7 @@ class HybridRRFContractTests(unittest.TestCase):
         self.assertEqual(result.merge_trace["rrf_k"], 60)
 
     def test_query_pipeline_keeps_hybrid_internal_trace(self) -> None:
+        """验证 query pipeline 不丢失 Hybrid 内部 retrieval events 与 merge trace。"""
         chunk = Chunk("c1", "s1", "h", "evidence", 0, 8, {})
         hybrid_result = RetrievalResult(
             query="q",
@@ -102,7 +128,10 @@ class HybridRRFContractTests(unittest.TestCase):
         )
 
         class _FakeHybrid:
+            """向 query pipeline 返回固定 Hybrid 结果。"""
+
             def run(self, query: str, topk: int, user_context=None):
+                """返回预置的 Hybrid retrieval result。"""
                 return hybrid_result
 
         result, _ = _retrieve_once(
@@ -119,6 +148,7 @@ class HybridRRFContractTests(unittest.TestCase):
         self.assertEqual(result.retrieval_events[1]["query_role"], "bm25_channel")
 
     def test_runtime_container_default_wraps_dense_with_fixed_hybrid_rrf(self) -> None:
+        """验证 RuntimeContainer 使用固定公开参数装配默认 Hybrid RRF。"""
         dense = object()
         hybrid = object()
         with (
